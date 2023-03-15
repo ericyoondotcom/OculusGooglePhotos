@@ -1,0 +1,68 @@
+body {
+	background-color: #FFFFFF;
+	font-family: "Lexend", sans-serif;
+	padding: 10vh 30vw;
+	text-align: center;
+	--accent-color: #4285F4;
+}
+
+@media only screen and (max-width: 1000px) {
+	body {
+		padding: 10vh 10vw;
+	}
+}
+
+h1, h2, h3, h4, h5, h6 {
+	margin: 0;
+}
+h1 {
+	font-size: 4vh;
+	margin-bottom: 8vh;
+}
+h2 {
+	font-size: 3vh;
+	margin-bottom: 4vh;
+}
+
+#link-box {
+	padding: 5vw;
+	border-radius: 15px;
+	text-align: center;
+	box-shadow: 0 0 20px 0 #000000AA;
+}
+#link-box > div {
+	/* start out the page with all steps hidden, they are controlled by JS */
+	display: none;
+}
+
+#code-entry-container {
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	align-items: center;
+	gap: 25px;
+}
+
+#code-entry-container button {
+	font-size: 40px;
+	background: none;
+	border: none;
+	background-color: var(--accent-color);
+	color: #FFFFFF;
+	border-radius: 50%;
+	width: 60px;
+	height: 60px;
+	cursor: pointer;
+}
+
+#code-entry-container button:hover {
+	opacity: 0.8;
+}
+
+#code-entry {
+	padding: 20px;
+	font-size: 20px;
+	border: 3px solid var(--accent-color);
+	border-radius: 5px;
+	font-family: "Lexend", sans-serif;
+}
