@@ -1,6 +1,8 @@
 const STEP_ELEMENTS = [
     document.getElementById("step-0"),
     document.getElementById("step-1"),
+    document.getElementById("step-2"),
+    document.getElementById("step-3"),
 ]
 function displayStep(stepNum) {
     displayError("");
@@ -28,27 +30,44 @@ function onCodeSubmit() {
     displayStep(1);
 }
 
-function oauthCallback() {
+let client;
 
+function oauthCallback(response) {
+    displayStep(2);
+    console.log(response)
 }
 
-function renderGoogleSignInButton() {
-    google.accounts.id.initialize({
+function initializeOAuth() {
+    client = google.accounts.oauth2.initCodeClient({
         client_id: OAUTH_CLIENT_ID,
+        scope: "https://www.googleapis.com/auth/photoslibrary.readonly",
+        ux_mode: "popup",
         callback: oauthCallback
     });
-    google.accounts.id.renderButton(
-        document.getElementById("google-button"),
-        {
-            theme: "filled_blue",
-            size: "large",
-            shape: "pill",
-            text: "continue_with"
-        }
-    );
+}
+
+function onSignInButtonClick() {
+    client.requestCode();
+}
+
+async function exchangeCodeForToken(code) {
+    const result = await fetch(serviceData.tokenUrl, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: new URLSearchParams({
+            grant_type: "authorization_code",
+            code,
+            redirect_uri: WEB_REDIRECT_URL,
+            client_id: serviceConstantsData.clientId,
+            client_secret: serviceConstantsData.clientSecret
+        })
+    });
+    const json = await result.json();
 }
 
 window.onload = () => {
     displayStep(0);
-    renderGoogleSignInButton();
+    initializeOAuth();
 }

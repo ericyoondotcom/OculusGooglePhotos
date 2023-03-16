@@ -67,9 +67,44 @@ h2 {
 	font-family: "Lexend", sans-serif;
 }
 
-#google-button {
+#sign-in-button {
+	margin: 0 auto;
+	display: flex;
+	justify-content: left;
+	align-items: center;
+	gap: 15px;
+	font-size: 15px;
+	font-weight: bold;
+	background-color: var(--accent-color);
+	color: #FFFFFF;
+	border-radius: 10px;
+	padding: 15px 20px;
+	border: none;
+	cursor: pointer;
+}
+#sign-in-button:hover {
+	opacity: 0.8;
+}
+#sign-in-button p {
+	margin: 0;
+}
+
+@keyframes spinner {
+	from { transform: rotate(0deg); }
+	to { transform: rotate(360deg); }
+}
+
+#step-2 {
 	display: flex;
 	justify-content: center;
+	align-items: center;
+	font-size: 50px;
+}
+#step-2 i {
+	animation-name: spinner;
+	animation-duration: 0.6s;
+	animation-iteration-count: infinite;
+	animation-timing-function: linear;
 }
 
 #error {
