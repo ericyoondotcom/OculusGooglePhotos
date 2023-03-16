@@ -66,3 +66,13 @@ h2 {
 	border-radius: 5px;
 	font-family: "Lexend", sans-serif;
 }
+
+#google-button {
+	display: flex;
+	justify-content: center;
+}
+
+#error {
+	color: #FF0000;
+	font-size: 15px;
+}

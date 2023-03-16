@@ -5,8 +5,10 @@
 	<title>VR Gallery for Google Photos</title>
 	
 	<link rel="stylesheet" href="style.css">
-	<script defer src="index.js"></script>
+	
 	<script src="https://kit.fontawesome.com/46aacf5341.js" crossorigin="anonymous"></script>
+	<script src="https://accounts.google.com/gsi/client" async defer></script>
+	<script src="config.js"></script>
 
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,14 +22,17 @@
 			<h2>Have a link code?</h2>
 			<div id="code-entry-container">
 				<input type="text" id="code-entry" placeholder="123-ABC-456">
-				<button><i class="fa-solid fa-arrow-right"></i></button>
+				<button onclick="onCodeSubmit()"><i class="fa-solid fa-arrow-right"></i></button>
 			</div>
 		</div>
 		<div id="step-1">
 			<h2>Authorize VR Gallery to view your Google Photos</h2>
-			<!-- TODO: https://developers.google.com/identity/gsi/web/tools/configurator -->
+			<div id="google-button"></div>
 		</div>
+		<p id="error"></p>
 	</div>
+	
+	<script src="index.js"></script>
 </body>
 
 </html>

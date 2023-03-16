@@ -1,10 +1,11 @@
 {
   "name": "oculusgooglephotos-web",
   "version": "1.0.0",
-  "description": "",
   "main": "",
   "scripts": {
+    "start": "serve public/ -p 1234"
   },
   "author": "Yoonicode",
-  "license": "SEE LICENSE IN LICENSE"
+  "license": "SEE LICENSE IN LICENSE",
+  "description": ""
 }

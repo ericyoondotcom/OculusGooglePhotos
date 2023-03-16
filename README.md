@@ -5,7 +5,30 @@ Google Photos viewer for Oculus Quest.
 WIP
 
 ## Get started with development
-WIP
+### Install tools
+- `npm install -g serve`
+
+### Create your own test Google Cloud project
+1. Create a project in the Google Cloud Console
+2. Under the API Library, enable the Google Photos library
+3. Configure your OAuth Consent Screen
+    - Authorize the domain `yoonicode.com`
+    - Add the scope `https://www.googleapis.com/auth/photoslibrary.readonly`
+4. Under the Credentials page, create a new credential
+    - Type: OAuth Client ID
+    - Application type: Web application
+    - Add the Javascript origins "https://gallery.yoonicode.com" and "http://localhost:1234"
+5. Take note of your client ID and client secret
+
+### Get the website running
+- `cd OculusGooglePhotos-Web`
+- Copy `config.template.js` to `config.js`
+    - Paste in your Google client ID and client secret
+- `npm install`
+- `npm start`
+
+### Get Unity running
+- Follow [this guide](https://developer.oculus.com/documentation/unity/unity-gs-overview/) to get your Oculus Quest set up with Unity.
 
 ## Technical details
 
