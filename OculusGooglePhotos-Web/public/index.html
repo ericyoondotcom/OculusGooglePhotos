@@ -3,9 +3,9 @@
 
 <head>
 	<title>VR Gallery for Google Photos</title>
-	
+
 	<link rel="stylesheet" href="style.css">
-	
+
 	<script src="https://kit.fontawesome.com/46aacf5341.js" crossorigin="anonymous"></script>
 	<script src="https://accounts.google.com/gsi/client" async defer></script>
 	<script src="config.js"></script>
@@ -13,9 +13,13 @@
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;700&display=swap" rel="stylesheet">
+
+	<script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-app-compat.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-functions-compat.js"></script>
 </head>
 
 <body>
+	<img id="logo" src="resources/logo.png" alt="Logo">
 	<h1>VR Gallery for Google Photos</h1>
 	<div id="link-box">
 		<div id="step-0">
@@ -36,8 +40,7 @@
 			<p><i class="fa-solid fa-circle-notch"></i></p>
 		</div>
 		<div id="step-3">
-			<h1>Awesome sauce!<h1>
-			<p>Now, return to the VR app.</p>
+			<h2>Awesome sauce! You can now return to the VR app.</h2>
 		</div>
 		<p id="error"></p>
 	</div>

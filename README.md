@@ -20,12 +20,25 @@ WIP
     - Add the Javascript origins "https://gallery.yoonicode.com" and "http://localhost:1234"
 5. Take note of your client ID and client secret
 
+### Set up Firebase
+1. Add Firebase to your Google Cloud project
+2. Create a new Web client
+3. Take note of the Firebase config shown to you
+
 ### Get the website running
 - `cd OculusGooglePhotos-Web`
 - Copy `config.template.js` to `config.js`
-    - Paste in your Google client ID and client secret
+    - Paste in your Google client ID
+    - Paste in your Firebase Config JSON object
 - `npm install`
 - `npm start`
+
+### Get Cloud Functions running
+- `cd functions`
+- Copy `config.template.js` to `config.js`
+    - Paste in your Google client ID and client secret
+- `npm run deploy`, or to emulate locally, `npm run serve`
+    - If you plan on using the emulator, you need to set up your admin credentials locally. See [docs](https://firebase.google.com/docs/functions/local-emulator#set_up_admin_credentials_optional). Download your key as `serviceAccountKey.json` and place it in the `functions` directory.
 
 ### Get Unity running
 - Follow [this guide](https://developer.oculus.com/documentation/unity/unity-gs-overview/) to get your Oculus Quest set up with Unity.

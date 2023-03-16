@@ -20,10 +20,10 @@ function displayError(error) {
     errorElem.innerText = error;
 }
 
-let code;
+let linkCode;
 function onCodeSubmit() {
-    code = document.getElementById("code-entry").value.replace("-", "").toLowerCase().trim();
-    if(code.length !== 9) {
+    linkCode = document.getElementById("code-entry").value.replace("-", "").toLowerCase().trim();
+    if(linkCode.length !== 9 || linkCode.includes("/")) {
         displayError("That doesn't seem like a valid link code.");
         return;
     }
@@ -34,7 +34,7 @@ let client;
 
 function oauthCallback(response) {
     displayStep(2);
-    console.log(response)
+    sendCodeToServer(response.code);
 }
 
 function initializeOAuth() {
@@ -46,28 +46,44 @@ function initializeOAuth() {
     });
 }
 
+let firebaseApp;
+let functions;
+function initializeFirebase() {
+    firebaseApp = firebase.initializeApp(FIREBASE_CONFIG);
+    functions = firebaseApp.functions();
+    if(window.location.hostname === "localhost") {
+        console.log("%c ** IN LOCALHOST ENVIRONMENT. USING FIREBASE FUNCTIONS EMULATOR **", "color: red;");
+        functions.useEmulator("localhost", 5001);
+    }
+}
+
 function onSignInButtonClick() {
     client.requestCode();
 }
 
-async function exchangeCodeForToken(code) {
-    const result = await fetch(serviceData.tokenUrl, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/x-www-form-urlencoded"
-        },
-        body: new URLSearchParams({
-            grant_type: "authorization_code",
-            code,
-            redirect_uri: WEB_REDIRECT_URL,
-            client_id: serviceConstantsData.clientId,
-            client_secret: serviceConstantsData.clientSecret
-        })
-    });
-    const json = await result.json();
+async function sendCodeToServer(authorizationCode) {
+    const onAuthorizationCodeObtained = functions.httpsCallable("onAuthorizationCodeObtained");
+    let res;
+    try {
+        res = await onAuthorizationCodeObtained({
+            linkCode,
+            authorizationCode
+        });
+    } catch(e) {
+        console.error(e);
+        displayError(`Something went wrong. Error: ${e.code}, ${e.message}`);
+        return;
+    }
+    if(!res.data?.success) {
+        console.log(res.data);
+        displayError("Something went wrong. Error: non-success response from server");
+        return;
+    }
+    displayStep(3);
 }
 
 window.onload = () => {
     displayStep(0);
     initializeOAuth();
+    initializeFirebase();
 }
