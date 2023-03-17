@@ -22,7 +22,7 @@ function displayError(error) {
 
 let linkCode;
 function onCodeSubmit() {
-    linkCode = document.getElementById("code-entry").value.replace("-", "").toLowerCase().trim();
+    linkCode = document.getElementById("code-entry").value.replace(/-/ig, "").toLowerCase().trim();
     if(linkCode.length !== 9 || linkCode.includes("/")) {
         displayError("That doesn't seem like a valid link code.");
         return;
