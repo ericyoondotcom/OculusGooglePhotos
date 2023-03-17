@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using UnityEditor.PackageManager;
 using System.Threading.Tasks;
+using SimpleJSON;
 
 public class AuthenticationManager : MonoBehaviour
 {
@@ -42,6 +43,7 @@ public class AuthenticationManager : MonoBehaviour
         }
 
         LoadSavedRefreshToken();
+        RefreshToken();
     }
 
     void OnAuthFail()
@@ -67,29 +69,29 @@ public class AuthenticationManager : MonoBehaviour
         using (HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Post, GetFirebaseFunctionsBaseURL() + "pollForRefreshToken"))
         {
             req.Content = new StringContent(linkCode);
-            HttpResponseMessage resp = await client.SendAsync(req);
+            HttpResponseMessage res = await client.SendAsync(req);
 
-            if (resp.StatusCode == System.Net.HttpStatusCode.NotFound)
+            if (res.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
                 // This link code has no result yet
                 //Debug.Log("No refresh token yet...");
                 return false;
             }
 
-            if (!resp.IsSuccessStatusCode)
+            if (!res.IsSuccessStatusCode)
             {
-                string content = resp.Content == null ? "" : await resp.Content.ReadAsStringAsync();
-                Debug.Log("Fetch token function returned status " + resp.StatusCode + ": " + content);
+                string content = res.Content == null ? "" : await res.Content.ReadAsStringAsync();
+                Debug.Log("Fetch token function returned status " + res.StatusCode + ": " + content);
                 return false;
             }
 
-            if (resp.Content == null)
+            if (res.Content == null)
             {
                 Debug.Log("Fetch token function returned no content!");
                 return false;
             }
 
-            string respStr = await resp.Content.ReadAsStringAsync();
+            string respStr = await res.Content.ReadAsStringAsync();
             refreshToken = respStr;
             Debug.Log("Found refresh token from server: " + refreshToken);
 
@@ -103,8 +105,51 @@ public class AuthenticationManager : MonoBehaviour
     public async Task<bool> RefreshToken()
     {
         FormUrlEncodedContent body = new FormUrlEncodedContent(new Dictionary<string, string>() {
-            {"grant_type", "refresh_token" },
-            {"refresh_token", Uri.EscapeDataString(authInfo.refreshToken) }
+            { "grant_type", "refresh_token" },
+            { "refresh_token", refreshToken },
+            { "client_id", Constants.OAUTH_CLIENT_ID },
+            { "client_secret", Constants.OAUTH_CLIENT_SECRET }
         });
+        using (HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Post, "https://oauth2.googleapis.com/token"))
+        {
+            req.Content = body;
+            req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/x-www-form-urlencoded"));
+            HttpResponseMessage res = await client.SendAsync(req);
+
+            if (!res.IsSuccessStatusCode)
+            {
+                string content = res.Content == null ? "" : await res.Content.ReadAsStringAsync();
+                Debug.LogError("Refresh token returned status " + res.StatusCode + ": " + content);
+                OnAuthFail();
+                return false;
+            }
+
+            if (res.Content == null)
+            {
+                Debug.LogError("Refresh token returned null content.");
+                return false;
+            }
+
+            string returnContent = await res.Content.ReadAsStringAsync();
+            SimpleJSON.JSONNode ret = SimpleJSON.JSON.Parse(returnContent);
+
+            accessToken = ret["access_token"];
+            accessTokenExpiry = DateTime.Now;
+            accessTokenExpiry.AddSeconds(ret["expires_in"].AsInt);
+            Debug.Log("Refreshed access token. Expires on " + accessTokenExpiry.ToLongDateString() + " @ " + accessTokenExpiry.ToLongTimeString() + ", access token: " + accessToken);
+            return true;
+        }
+    }
+
+    public async Task<string> GetAccessToken()
+    {
+        if (accessToken.Length == 0 || accessTokenExpiry < DateTime.Now)
+        {
+            if (!await RefreshToken())
+            {
+                return "";
+            }
+        }
+        return accessToken;
     }
 }
