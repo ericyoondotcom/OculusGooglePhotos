@@ -6,7 +6,6 @@ using UnityEngine.SceneManagement;
 using OVRSimpleJSON;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using UnityEditor.PackageManager;
 using System.Threading.Tasks;
 using SimpleJSON;
 
@@ -43,7 +42,6 @@ public class AuthenticationManager : MonoBehaviour
         }
 
         LoadSavedRefreshToken();
-        RefreshToken();
     }
 
     void OnAuthFail()
@@ -143,13 +141,26 @@ public class AuthenticationManager : MonoBehaviour
 
     public async Task<string> GetAccessToken()
     {
-        if (accessToken.Length == 0 || accessTokenExpiry < DateTime.Now)
+        if (refreshToken == null || refreshToken.Length == 0)
+        {
+            return null;
+        }
+        if (accessToken == null || accessToken.Length == 0 || accessTokenExpiry < DateTime.Now)
         {
             if (!await RefreshToken())
             {
-                return "";
+                return null;
             }
         }
         return accessToken;
+    }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.F1))
+        {
+            PlayerPrefs.DeleteAll();
+            OnAuthFail();
+        }
     }
 }

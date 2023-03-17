@@ -1,6 +1,7 @@
 const config = require("./config");
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
+const fetch = require("node-fetch-commonjs");
 
 admin.initializeApp();
 const db = admin.database();
