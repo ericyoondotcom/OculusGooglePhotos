@@ -34,7 +34,7 @@ WIP
 - `npm start`
 
 ### Get Cloud Functions running
-- `cd functions`
+- `cd OculusGooglePhotos-Web/functions`
 - Copy `config.template.js` to `config.js`
     - Paste in your Google client ID and client secret
 - `npm run deploy`, or to emulate locally, `npm run serve`
@@ -42,6 +42,8 @@ WIP
 
 ### Get Unity running
 - Follow [this guide](https://developer.oculus.com/documentation/unity/unity-gs-overview/) to get your Oculus Quest set up with Unity.
+- Copy `OculusGooglePhotos-Unity/Assets/Scripts/Constants.template` to `Constants.cs`
+    - Paste in your Cloud Functions base URL (such as `https://us-central1-foobar.cloudfunctions.net`)
 
 ## Technical details
 

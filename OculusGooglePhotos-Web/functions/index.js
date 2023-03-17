@@ -41,6 +41,23 @@ exports.onAuthorizationCodeObtained = functions.https.onCall(async (data, contex
     return {success: true};
 });
 
-exports.pollForRefreshToken = functions.https.onRequest((req, res) => {
+// req data: text/plain (link code string)
+// res data: text/plain (refresh token string)
+exports.pollForRefreshToken = functions.https.onRequest(async (req, res) => {
+    const linkCode = req.body;
+    if((typeof linkCode) !== "string" || linkCode.length !== 9 || linkCode.includes("/")) {
+        return res.status(400).end("Malformed link code.");
+    }
 
+    let snap;
+    try {
+        snap = await db.ref("authResults/" + linkCode).get();
+    } catch(e) {
+        return res.status(500).end("Error while fetching auth result from database.");
+    }
+    const val = snap.val();
+    if(!val) {
+        return res.status(404).end("No auth result found");
+    }
+    return res.status(200).end(snap.val().refreshToken);
 });

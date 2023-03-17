@@ -1,0 +1,10 @@
+public class Constants
+{
+    // Your base URL for Firebase Cloud Functions. Please include a trailing forward slash
+    public const string FIREBASE_FUNCTIONS_BASE_URL = "https://us-central1-<project-id>.cloudfunctions.net/";
+    // Your base URL for Cloud Functions, if you're using the emulator. Please include a trailing forward slash
+    public const string FIREBASE_FUNCTIONS_BASE_URL_EMULATOR = "http://localhost:5001/<project-id>/us-central1/";
+
+    public const string OAUTH_CLIENT_ID = "";
+    public const string OAUTH_CLIENT_SECRET = "";
+}
