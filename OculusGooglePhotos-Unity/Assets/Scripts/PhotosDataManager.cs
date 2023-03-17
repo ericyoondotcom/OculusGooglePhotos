@@ -11,6 +11,8 @@ public class PhotosDataManager : MonoBehaviour
 {
     public PhotosDataStore data { get; private set; } = new PhotosDataStore();
 
+    public int numAlbumsPerPage = 10;
+
     readonly HttpClient client = new HttpClient();
 
     public async Task<bool> FetchNextPageOfAlbumData()
@@ -22,7 +24,7 @@ public class PhotosDataManager : MonoBehaviour
         UriBuilder uriBuilder = new UriBuilder("https://photoslibrary.googleapis.com/v1/albums");
         uriBuilder.Port = -1;
         var query = HttpUtility.ParseQueryString(uriBuilder.Query);
-        query["pageSize"] = "50";
+        query["pageSize"] = numAlbumsPerPage.ToString();
         if (data.nextAlbumPageToken.Length > 0) query["pageToken"] = data.nextAlbumPageToken;
         uriBuilder.Query = query.ToString();
 

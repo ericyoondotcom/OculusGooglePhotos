@@ -14,12 +14,12 @@ public class PlayerUIController : MonoBehaviour
 
     void Start()
     {
+        albumUI.playerUIController = this;
+        photosUI.playerUIController = this;
         LoadAlbums();
         loader.SetActive(true);
         albumUI.gameObject.SetActive(false);
         photosUI.gameObject.SetActive(false);
-        albumUI.playerUIController = this;
-        photosUI.playerUIController = this;
     }
 
     public void LoadAlbums()

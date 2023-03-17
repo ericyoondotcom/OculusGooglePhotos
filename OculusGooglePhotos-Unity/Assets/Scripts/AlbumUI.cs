@@ -15,6 +15,8 @@ public class AlbumUI : MonoBehaviour
     [System.NonSerialized]
     public PlayerUIController playerUIController;
 
+    List<string> instantiatedAlbumKeys = new List<string>();
+
     private void Start()
     {
         entryHeight = albumEntryPrefab.GetComponent<RectTransform>().rect.height;
@@ -22,29 +24,46 @@ public class AlbumUI : MonoBehaviour
 
     public void DisplayAlbums(PhotosDataStore data)
     {
-        foreach(Transform child in scrollViewContent) {
-            Destroy(child);
-        }
-
-        scrollViewContent.sizeDelta = new Vector2(0, (entryHeight + entryGap) * data.albums.Count + contentHeightAddition);
+        scrollViewContent.sizeDelta = new Vector2(
+            0,
+            (entryHeight + entryGap) * data.albums.Count +
+            contentHeightAddition +
+            loadMoreButton.rect.height +
+            entryGap
+        );
         loadMoreButton.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Top, (entryHeight + entryGap) * data.albums.Count, loadMoreButton.rect.height);
         loadMoreButton.gameObject.SetActive(data.hasMoreAlbumPagesToLoad);
 
         for (int i = 0; i < data.albums.Count; i++) {
-            Album album = data.albums.ElementAt(i).Value;
+            
+            var kvp = data.albums.ElementAt(i);
+            Album album = kvp.Value;
+            if (instantiatedAlbumKeys.Contains(kvp.Key)) continue;
+            instantiatedAlbumKeys.Add(kvp.Key);
             GameObject newEntry = Instantiate(albumEntryPrefab, scrollViewContent);
             RectTransform rt = newEntry.GetComponent<RectTransform>();
             rt.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Top, (entryHeight + entryGap) * i, entryHeight);
             AlbumUIEntry albumUIEntry = newEntry.GetComponent<AlbumUIEntry>();
 
-            string imageUrl = album.coverPhotoBaseUrl + "=w500-h500";
+            string imageUrl = album.coverPhotoBaseUrl + "=w500-h500-c";
             StartCoroutine(albumUIEntry.SetImageSprite(imageUrl));
             albumUIEntry.SetText(album.title);
         }
     }
 
+    public void DestroyAllEntries()
+    {
+        foreach (Transform child in scrollViewContent)
+        {
+            if (child.gameObject.GetComponent<AlbumUIEntry>() != null)
+                Destroy(child.gameObject);
+        }
+        instantiatedAlbumKeys.Clear();
+    }
+
     public void LoadMore()
     {
+        Debug.Log("Load more!");
         playerUIController.LoadAlbums();
     }
 }
