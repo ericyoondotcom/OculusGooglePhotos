@@ -5,6 +5,8 @@ using UnityEngine;
 
 public class PlayerUIController : MonoBehaviour
 {
+    public const string ALL_PHOTOS_TEXT = "All photos";
+    
     public PhotosDataManager photosDataManager;
     public GameObject loader;
     public AlbumUI albumUI;

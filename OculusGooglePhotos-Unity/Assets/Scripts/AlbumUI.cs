@@ -5,7 +5,6 @@ using UnityEngine;
 
 public class AlbumUI : MonoBehaviour
 {
-    float entryHeight;
     public float entryGap;
     public float contentHeightAddition;
 
@@ -15,7 +14,11 @@ public class AlbumUI : MonoBehaviour
     [System.NonSerialized]
     public PlayerUIController playerUIController;
 
+    float entryHeight;
     List<string> instantiatedAlbumKeys = new List<string>();
+    List<GameObject> instantiatedEntries = new List<GameObject>();
+
+    const int NUM_PERSISTENT_ENTRIES = 1;
 
     private void Start()
     {
@@ -26,12 +29,12 @@ public class AlbumUI : MonoBehaviour
     {
         scrollViewContent.sizeDelta = new Vector2(
             0,
-            (entryHeight + entryGap) * data.albums.Count +
+            (entryHeight + entryGap) * (data.albums.Count + NUM_PERSISTENT_ENTRIES) +
             contentHeightAddition +
             loadMoreButton.rect.height +
             entryGap
         );
-        loadMoreButton.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Top, (entryHeight + entryGap) * data.albums.Count, loadMoreButton.rect.height);
+        loadMoreButton.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Top, (entryHeight + entryGap) * (data.albums.Count + NUM_PERSISTENT_ENTRIES), loadMoreButton.rect.height);
         loadMoreButton.gameObject.SetActive(data.hasMoreAlbumPagesToLoad);
 
         for (int i = 0; i < data.albums.Count; i++) {
@@ -41,10 +44,13 @@ public class AlbumUI : MonoBehaviour
             if (instantiatedAlbumKeys.Contains(kvp.Key)) continue;
             instantiatedAlbumKeys.Add(kvp.Key);
             GameObject newEntry = Instantiate(albumEntryPrefab, scrollViewContent);
+            instantiatedEntries.Add(newEntry);
             RectTransform rt = newEntry.GetComponent<RectTransform>();
-            rt.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Top, (entryHeight + entryGap) * i, entryHeight);
-            AlbumUIEntry albumUIEntry = newEntry.GetComponent<AlbumUIEntry>();
+            rt.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Top, (entryHeight + entryGap) * (i + NUM_PERSISTENT_ENTRIES), entryHeight);
+            
+            // TODO: Set button onClick as a lambda that calls OnSelectAlbum
 
+            AlbumUIEntry albumUIEntry = newEntry.GetComponent<AlbumUIEntry>();
             string imageUrl = album.coverPhotoBaseUrl + "=w500-h500-c";
             StartCoroutine(albumUIEntry.SetImageSprite(imageUrl));
             albumUIEntry.SetText(album.title);
@@ -53,17 +59,27 @@ public class AlbumUI : MonoBehaviour
 
     public void DestroyAllEntries()
     {
-        foreach (Transform child in scrollViewContent)
+        foreach (GameObject go in instantiatedEntries)
         {
-            if (child.gameObject.GetComponent<AlbumUIEntry>() != null)
-                Destroy(child.gameObject);
+            Destroy(go);
         }
         instantiatedAlbumKeys.Clear();
+        instantiatedEntries.Clear();
     }
 
     public void LoadMore()
     {
-        Debug.Log("Load more!");
         playerUIController.LoadAlbums();
+    }
+
+    public void OnSelectLibrary()
+    {
+        // TODO
+    }
+
+    void OnSelectAlbum()
+    {
+        // TODO
+        // Tell PlayerUIController to switch to photos mode, and have it call DisplayAlbum()
     }
 }

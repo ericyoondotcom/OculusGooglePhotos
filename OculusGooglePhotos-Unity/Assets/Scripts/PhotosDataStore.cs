@@ -4,7 +4,7 @@ using System.Collections.Generic;
 public class PhotosDataStore
 {
     public Dictionary<string, Album> albums = new Dictionary<string, Album>();
-    public Dictionary<string, Photo> photos = new Dictionary<string, Photo>();
+    public Dictionary<string, MediaItem> libraryMediaItems = new Dictionary<string, MediaItem>();
     public string nextAlbumPageToken = "";
     public bool hasMoreAlbumPagesToLoad = true;
 }
@@ -14,6 +14,7 @@ public class Album {
     public string title;
     public int mediaItemsCount;
     public string coverPhotoBaseUrl;
+    public Dictionary<string, MediaItem> mediaItems;
 
     public Album(string id, string title, int mediaItemsCount, string coverPhotoBaseUrl)
     {
@@ -21,9 +22,10 @@ public class Album {
         this.title = title;
         this.mediaItemsCount = mediaItemsCount;
         this.coverPhotoBaseUrl = coverPhotoBaseUrl;
+        this.mediaItems = new Dictionary<string, MediaItem>();
     }
 }
 
-public class Photo {
+public class MediaItem {
 
 }

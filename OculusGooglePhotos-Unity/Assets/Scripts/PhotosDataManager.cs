@@ -73,4 +73,19 @@ public class PhotosDataManager : MonoBehaviour
             return true;
         }
     }
+
+    public async Task<bool> FetchNextPageOfLibraryMediaItems()
+    {
+        // TODO
+        // https://developers.google.com/photos/library/reference/rest/v1/mediaItems/list
+        // Add media
+        return false;
+    }
+
+    public async Task<bool> FetchNextPageOfMediaItemsInAlbum()
+    {
+        // TODO
+        // https://developers.google.com/photos/library/reference/rest/v1/mediaItems/search
+        return false;
+    }
 }
