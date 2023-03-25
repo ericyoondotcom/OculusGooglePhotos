@@ -82,8 +82,8 @@ public class PhotosUI : MonoBehaviour
 
     public void OnFormatSelect(string type)
     {
-        Constants.PhotoTypes photoType = Constants.PhotoTypes.Unspecified;
-        if (type == "rectangular") photoType = Constants.PhotoTypes.Rectangular;
+        Utility.PhotoTypes photoType = Utility.PhotoTypes.Unspecified;
+        if (type == "rectangular") photoType = Utility.PhotoTypes.Rectangular;
         else if(type == "spherical")
         {
             // Check aspect ratio and set photoType accordingly
