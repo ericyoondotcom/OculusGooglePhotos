@@ -22,6 +22,7 @@ public class AuthenticationManager : MonoBehaviour
     [NonSerialized]
     public DateTime accessTokenExpiry;
     readonly HttpClient client = new HttpClient();
+    string loadSceneOnNextUpdate;
 
     void Start()
     {
@@ -46,7 +47,7 @@ public class AuthenticationManager : MonoBehaviour
 
     void OnAuthFail()
     {
-        SceneManager.LoadSceneAsync("Login");
+        loadSceneOnNextUpdate = "Login";
     }
 
     void LoadSavedRefreshToken()
@@ -157,6 +158,11 @@ public class AuthenticationManager : MonoBehaviour
 
     private void Update()
     {
+        if (loadSceneOnNextUpdate != null)
+        {
+            SceneManager.LoadSceneAsync(loadSceneOnNextUpdate);
+            loadSceneOnNextUpdate = null;
+        }
         if (Input.GetKeyDown(KeyCode.F1))
         {
             PlayerPrefs.DeleteAll();
