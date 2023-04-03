@@ -6,6 +6,14 @@ using UnityEngine.UI;
 
 public class PhotosUI : MonoBehaviour
 {
+    public enum FilterMode
+    {
+        Unfiltered,
+        SphericalPhotosOnly,
+        StereoPhotosOnly,
+        VideosOnly
+    };
+
     public float entryGap;
     public float contentHeightAddition;
     public int numColumnsPerRow;
@@ -15,13 +23,17 @@ public class PhotosUI : MonoBehaviour
     public Sprite iconSphericalStereo;
 
     public Image formatButtonIcon;
-    public GameObject formatPicker;
+    public GameObject formatModal;
+    public GameObject filterModal;
     public RectTransform scrollViewContent;
     public RectTransform loadMoreButton;
     public TextMeshProUGUI albumTitle;
     public GameObject photoEntryPrefab;
+    public PhotoDisplayer photoDisplayer;
     [System.NonSerialized]
     public PlayerUIController playerUIController;
+    [System.NonSerialized]
+    FilterMode filterMode = FilterMode.Unfiltered;
 
     float entryDimension;
     bool isShowingLibrary = false;
@@ -32,9 +44,12 @@ public class PhotosUI : MonoBehaviour
     private void Start()
     {
         entryDimension = scrollViewContent.rect.width / numColumnsPerRow;
+        formatModal.SetActive(false);
+        filterModal.SetActive(false);
+        OnFormatSelect(Utility.PhotoTypes.RectangularMono);
     }
 
-    public void DisplayLibrary(Dictionary<string, MediaItem> mediaItems)
+    public void DisplayLibrary(PhotosDataStore data)
     {
         if(!isShowingLibrary || displayedAlbumId != null)
         {
@@ -43,11 +58,12 @@ public class PhotosUI : MonoBehaviour
         isShowingLibrary = true;
         albumTitle.text = PlayerUIController.ALL_PHOTOS_TEXT;
         displayedAlbumId = null;
-        DisplayPhotos(mediaItems);
+        DisplayPhotos(data.library.mediaItems);
     }
 
-    public void DisplayAlbum(Album album)
+    public void DisplayAlbum(PhotosDataStore data, string albumKey)
     {
+        Album album = data.albums[albumKey];
         if(isShowingLibrary || displayedAlbumId != album.id)
         {
             DestroyAllEntries();
@@ -63,6 +79,18 @@ public class PhotosUI : MonoBehaviour
 
     }
 
+    void Refresh()
+    {
+        if (isShowingLibrary)
+        {
+            playerUIController.DisplayPhotosFromLibrary();
+        }
+        else
+        {
+            playerUIController.DisplayPhotosFromAlbum(displayedAlbumId);
+        }
+    }
+
     public void DestroyAllEntries()
     {
         foreach (GameObject go in instantiatedEntries)
@@ -75,15 +103,61 @@ public class PhotosUI : MonoBehaviour
 
     public void LoadMore()
     {
-        playerUIController.LoadAlbums();
+        if (isShowingLibrary)
+        {
+            playerUIController.LoadLibraryMediaItems();
+        }
+        else
+        {
+            playerUIController.LoadAlbumMediaItems(displayedAlbumId);
+        }
     }
 
     void OnSelectPhoto(string photoId)
     {
         // TODO
-        // Check aspect ratio.
-            // If 2:1, display format picker modal with options "rectangular" and "spherical mono"
-            // If 1:1, display format picker modal with options "rectangular" and "spherical stereo"
+        // Make a web request to get the photo with the =d flag
+        // Check the XMP data for a projection field, and auto-set the photo type
+        // Set currentMediaItem of photoDisplayer and call its DisplayPhoto()
+    }
+
+    public void OnFilterButtonClick()
+    {
+        formatModal.SetActive(false);
+        filterModal.SetActive(!filterModal.activeSelf);
+    }
+
+    public void OnFilterModeSelect(string filterMode)
+    {
+        switch (filterMode)
+        {
+            case "spherical":
+                OnFilterModeSelect(FilterMode.SphericalPhotosOnly);
+                break;
+            case "stereo":
+                OnFilterModeSelect(FilterMode.StereoPhotosOnly);
+                break;
+            case "video":
+                OnFilterModeSelect(FilterMode.VideosOnly);
+                break;
+            case "unfiltered":
+            default:
+                OnFilterModeSelect(FilterMode.Unfiltered);
+                break;
+        }
+    }
+
+    public void OnFilterModeSelect(FilterMode filterMode)
+    {
+        filterModal.SetActive(false);
+        this.filterMode = filterMode;
+        Refresh();
+    }
+
+    public void OnFormatButtonClick()
+    {
+        formatModal.SetActive(!formatModal.activeSelf);
+        filterModal.SetActive(false);
     }
 
     public void OnFormatSelect(string type)
@@ -109,6 +183,26 @@ public class PhotosUI : MonoBehaviour
     }
     public void OnFormatSelect(Utility.PhotoTypes type)
     {
-
+        formatModal.SetActive(false);
+        photoDisplayer.photoType = type;
+        switch (type)
+        {
+            case Utility.PhotoTypes.RectangularMono:
+                formatButtonIcon.sprite = iconRectangularMono;
+                break;
+            case Utility.PhotoTypes.RectangularStereo:
+                formatButtonIcon.sprite = iconRectangularStereo;
+                break;
+            case Utility.PhotoTypes.SphericalMono:
+                formatButtonIcon.sprite = iconSphericalMono;
+                break;
+            case Utility.PhotoTypes.SphericalStereo:
+                formatButtonIcon.sprite = iconSphericalStereo;
+                break;
+            case Utility.PhotoTypes.Unspecified:
+            default:
+                formatButtonIcon.sprite = null;
+                break;
+        }
     }
 }

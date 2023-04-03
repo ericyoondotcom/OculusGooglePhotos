@@ -73,20 +73,19 @@ public class AuthenticationManager : MonoBehaviour
             if (res.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
                 // This link code has no result yet
-                //Debug.Log("No refresh token yet...");
                 return false;
             }
 
             if (!res.IsSuccessStatusCode)
             {
                 string content = res.Content == null ? "" : await res.Content.ReadAsStringAsync();
-                Debug.Log("Fetch token function returned status " + res.StatusCode + ": " + content);
+                Debug.LogError("Fetch token function returned status " + res.StatusCode + ": " + content);
                 return false;
             }
 
             if (res.Content == null)
             {
-                Debug.Log("Fetch token function returned no content!");
+                Debug.LogError("Fetch token function returned no content!");
                 return false;
             }
 
@@ -133,8 +132,7 @@ public class AuthenticationManager : MonoBehaviour
             SimpleJSON.JSONNode ret = SimpleJSON.JSON.Parse(returnContent);
 
             accessToken = ret["access_token"];
-            accessTokenExpiry = DateTime.Now;
-            accessTokenExpiry.AddSeconds(ret["expires_in"].AsInt);
+            accessTokenExpiry = DateTime.Now.AddSeconds(ret["expires_in"].AsInt);
             Debug.Log("Refreshed access token. Expires on " + accessTokenExpiry.ToLongDateString() + " @ " + accessTokenExpiry.ToLongTimeString() + ", access token: " + accessToken);
             return true;
         }

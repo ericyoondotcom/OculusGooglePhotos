@@ -12,20 +12,50 @@ public class PlayerUIController : MonoBehaviour
     public AlbumUI albumUI;
     public PhotosUI photosUI;
 
-    bool loadAlbumsOnNextCycle;
+    bool displayAlbumsOnNextFrame;
 
     void Start()
     {
         albumUI.playerUIController = this;
         photosUI.playerUIController = this;
         LoadAlbums();
+    }
+
+    public void DisplayLoader()
+    {
         loader.SetActive(true);
         albumUI.gameObject.SetActive(false);
         photosUI.gameObject.SetActive(false);
     }
 
+    public void DisplayAlbumUI()
+    {
+        loader.SetActive(false);
+        albumUI.gameObject.SetActive(true);
+        photosUI.gameObject.SetActive(false);
+        albumUI.DisplayAlbums(photosDataManager.data);
+    }
+
+    public void DisplayPhotosFromLibrary()
+    {
+        loader.SetActive(false);
+        albumUI.gameObject.SetActive(false);
+        photosUI.gameObject.SetActive(true);
+        photosUI.DisplayLibrary(photosDataManager.data);
+    }
+
+    public void DisplayPhotosFromAlbum(string albumKey)
+    {
+        loader.SetActive(false);
+        albumUI.gameObject.SetActive(false);
+        photosUI.gameObject.SetActive(true);
+        photosUI.DisplayAlbum(photosDataManager.data, albumKey);
+    }
+
     public void LoadAlbums()
     {
+        DisplayLoader();
+
         Task task = Task.Run(async () =>
         {
             await photosDataManager.FetchNextPageOfAlbumData();
@@ -35,19 +65,26 @@ public class PlayerUIController : MonoBehaviour
             {
                 Debug.LogError(t.Exception);
             }
-            if (t.IsCompleted) loadAlbumsOnNextCycle = true;
+            if (t.IsCompleted) displayAlbumsOnNextFrame = true;
         });
+    }
+
+    public void LoadLibraryMediaItems()
+    {
+        Debug.Log("Loading library!");
+    }
+
+    public void LoadAlbumMediaItems(string albumKey)
+    {
+        Debug.Log("Loading album " + albumKey);
     }
 
     void Update()
     {
-        if (loadAlbumsOnNextCycle)
+        if (displayAlbumsOnNextFrame)
         {
-            loader.SetActive(false);
-            albumUI.gameObject.SetActive(true);
-            albumUI.DisplayAlbums(photosDataManager.data);
-            loadAlbumsOnNextCycle = false;
+            DisplayAlbumUI();
+            displayAlbumsOnNextFrame = false;
         }
-        if (Input.GetKeyDown(KeyCode.X)) LoadAlbums();
     }
 }

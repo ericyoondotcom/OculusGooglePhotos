@@ -6,6 +6,7 @@ using TMPro;
 
 public class AlbumUIEntry : MonoBehaviour
 {
+    public Button button;
     public Image image;
     public TextMeshProUGUI text;
 

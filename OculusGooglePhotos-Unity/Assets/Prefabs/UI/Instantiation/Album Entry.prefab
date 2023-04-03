@@ -271,6 +271,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b8d294234afdf4b02970544a1ad007da, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  button: {fileID: 4792237719375392538}
   image: {fileID: 4792237720153322314}
   text: {fileID: 4792237718598078319}
 --- !u!1 &4792237720153322308

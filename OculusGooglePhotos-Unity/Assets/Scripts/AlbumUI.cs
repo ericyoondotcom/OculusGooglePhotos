@@ -48,12 +48,11 @@ public class AlbumUI : MonoBehaviour
             RectTransform rt = newEntry.GetComponent<RectTransform>();
             rt.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Top, (entryHeight + entryGap) * (i + NUM_PERSISTENT_ENTRIES), entryHeight);
             
-            // TODO: Set button onClick as a lambda that calls OnSelectAlbum
-
             AlbumUIEntry albumUIEntry = newEntry.GetComponent<AlbumUIEntry>();
             string imageUrl = album.coverPhotoBaseUrl + "=w500-h500-c";
             StartCoroutine(albumUIEntry.SetImageSprite(imageUrl));
             albumUIEntry.SetText(album.title);
+            albumUIEntry.button.onClick.AddListener(() => OnSelectAlbum(kvp.Key));
         }
     }
 
@@ -74,12 +73,11 @@ public class AlbumUI : MonoBehaviour
 
     public void OnSelectLibrary()
     {
-        // TODO
+        playerUIController.LoadLibraryMediaItems();
     }
 
-    void OnSelectAlbum()
+    void OnSelectAlbum(string albumKey)
     {
-        // TODO
-        // Tell PlayerUIController to switch to photos mode, and have it call DisplayAlbum()
+        playerUIController.LoadAlbumMediaItems(albumKey);
     }
 }

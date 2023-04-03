@@ -36,13 +36,13 @@ public class PhotosDataManager : MonoBehaviour
             if (!res.IsSuccessStatusCode)
             {
                 string content = res.Content == null ? "" : await res.Content.ReadAsStringAsync();
-                Debug.Log("Response " + res.StatusCode + " from Google Photos album LIST: " + content);
+                Debug.LogError("Response " + res.StatusCode + " from Google Photos album LIST: " + content);
                 return false;
             }
 
             if (res.Content == null)
             {
-                Debug.Log("Null content from Google Photos album LIST.");
+                Debug.LogError("Null content from Google Photos album LIST.");
                 return false;
             }
 
@@ -67,7 +67,6 @@ public class PhotosDataManager : MonoBehaviour
                 string title = albumData["title"];
                 int mediaItemsCount = int.Parse(albumData["mediaItemsCount"]);
                 string coverPhotoBaseUrl = albumData["coverPhotoBaseUrl"];
-                Debug.Log("id: " + id + ", title: " + title);
                 data.albums[id] = new Album(id, title, mediaItemsCount, coverPhotoBaseUrl);
             }
             return true;
