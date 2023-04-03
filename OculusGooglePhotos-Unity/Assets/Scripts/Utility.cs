@@ -4,7 +4,8 @@ public class Utility
     public enum PhotoTypes
     {
         Unspecified = 0,
-        Rectangular,
+        RectangularMono,
+        RectangularStereo,
         SphericalMono,
         SphericalStereo
     }

@@ -2,13 +2,19 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PhotosUI : MonoBehaviour
 {
     public float entryGap;
     public float contentHeightAddition;
     public int numColumnsPerRow;
+    public Sprite iconRectangularMono;
+    public Sprite iconRectangularStereo;
+    public Sprite iconSphericalMono;
+    public Sprite iconSphericalStereo;
 
+    public Image formatButtonIcon;
     public GameObject formatPicker;
     public RectTransform scrollViewContent;
     public RectTransform loadMoreButton;
@@ -82,12 +88,27 @@ public class PhotosUI : MonoBehaviour
 
     public void OnFormatSelect(string type)
     {
-        Utility.PhotoTypes photoType = Utility.PhotoTypes.Unspecified;
-        if (type == "rectangular") photoType = Utility.PhotoTypes.Rectangular;
-        else if(type == "spherical")
+        switch (type)
         {
-            // Check aspect ratio and set photoType accordingly
+            case "rectangular mono":
+                OnFormatSelect(Utility.PhotoTypes.RectangularMono);
+                break;
+            case "rectangular stereo":
+                OnFormatSelect(Utility.PhotoTypes.RectangularStereo);
+                break;
+            case "spherical mono":
+                OnFormatSelect(Utility.PhotoTypes.SphericalMono);
+                break;
+            case "spherical stereo":
+                OnFormatSelect(Utility.PhotoTypes.SphericalStereo);
+                break;
+            default:
+                OnFormatSelect(Utility.PhotoTypes.Unspecified);
+                break;
         }
-        // TODO
+    }
+    public void OnFormatSelect(Utility.PhotoTypes type)
+    {
+
     }
 }
