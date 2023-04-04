@@ -38,7 +38,8 @@ public class PhotosUI : MonoBehaviour
     bool isShowingLibrary = false;
     string displayedAlbumId = null;
     List<string> instantiatedPhotoKeys = new List<string>();
-    List<GameObject> instantiatedEntries = new List<GameObject>();
+    Dictionary<string, PhotoUIEntry> instantiatedEntries = new Dictionary<string, PhotoUIEntry>();
+    PhotoUIEntry selectedEntry;
 
     private void Start()
     {
@@ -102,8 +103,8 @@ public class PhotosUI : MonoBehaviour
             int col = i % numColumnsPerRow;
 
             GameObject newEntry = Instantiate(photoEntryPrefab, scrollViewContent);
-            instantiatedEntries.Add(newEntry);
             RectTransform rt = newEntry.GetComponent<RectTransform>();
+
             rt.SetInsetAndSizeFromParentEdge(
                 RectTransform.Edge.Top,
                 entryDimension * row,
@@ -116,6 +117,7 @@ public class PhotosUI : MonoBehaviour
             );
 
             PhotoUIEntry photoUIEntry = newEntry.GetComponent<PhotoUIEntry>();
+            instantiatedEntries[kvp.Key] = photoUIEntry;
             string imageUrl = null;
             if (mediaItem.IsPhoto) imageUrl = mediaItem.baseUrl + "=w500-h500-c";
             else if (mediaItem.IsVideo) imageUrl = mediaItem.baseUrl + "=w500-h500-c";
@@ -138,13 +140,14 @@ public class PhotosUI : MonoBehaviour
 
     public void DestroyAllEntries()
     {
-        foreach (GameObject go in instantiatedEntries)
+        foreach (var kvp in instantiatedEntries)
         {
-            Destroy(go);
+            Destroy(kvp.Value.gameObject);
         }
         instantiatedPhotoKeys.Clear();
         instantiatedEntries.Clear();
         scrollViewContent.anchoredPosition = Vector2.zero;
+        selectedEntry = null;
     }
 
     public void LoadMore()
@@ -161,6 +164,21 @@ public class PhotosUI : MonoBehaviour
 
     void OnSelectPhoto(string photoId)
     {
+        if (!instantiatedEntries.ContainsKey(photoId)) return;
+        PhotoUIEntry entry = instantiatedEntries[photoId];
+        if (selectedEntry != null)
+        {
+            selectedEntry.SetSelected(false);
+        }
+        if (selectedEntry == entry)
+        {
+            selectedEntry = null;
+        }
+        else
+        {
+            entry.SetSelected(true);
+            selectedEntry = entry;
+        }
         // TODO
         // Make a web request to get the photo with the =d flag
         // Check the XMP data for a projection field, and auto-set the photo type

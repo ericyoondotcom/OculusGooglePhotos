@@ -8,6 +8,12 @@ public class PhotoUIEntry : MonoBehaviour
 {
     public Image image;
     public Button button;
+    public GameObject selectedUI;
+
+    public void SetSelected(bool isSelected)
+    {
+        selectedUI.SetActive(isSelected);
+    }
 
     public IEnumerator SetImageSprite(string url)
     {
