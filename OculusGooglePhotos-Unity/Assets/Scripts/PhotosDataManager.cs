@@ -136,10 +136,67 @@ public class PhotosDataManager : MonoBehaviour
         }
     }
 
-    public async Task<bool> FetchNextPageOfMediaItemsInAlbum()
+    public async Task<bool> FetchNextPageOfMediaItemsInAlbum(string albumKey)
     {
-        // TODO
-        // https://developers.google.com/photos/library/reference/rest/v1/mediaItems/search
-        return false;
+        Album album = data.albums[albumKey];
+        if (!album.hasMoreMediaItemsToLoad) return false;
+        string accessToken = await AuthenticationManager.Instance.GetAccessToken();
+        if (accessToken == null || accessToken.Length == 0) return false;
+
+        UriBuilder uriBuilder = new UriBuilder("https://photoslibrary.googleapis.com/v1/mediaItems:search");
+        uriBuilder.Port = -1;
+        var query = HttpUtility.ParseQueryString(uriBuilder.Query);
+        query["pageSize"] = numMediaItemsPerPage.ToString();
+        if (album.nextMediaItemsPageToken.Length > 0) query["pageToken"] = album.nextMediaItemsPageToken;
+        query["albumId"] = albumKey;
+        uriBuilder.Query = query.ToString();
+
+        using (HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Post, uriBuilder.ToString()))
+        {
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            HttpResponseMessage res = await client.SendAsync(req);
+
+            if (!res.IsSuccessStatusCode)
+            {
+                string content = res.Content == null ? "" : await res.Content.ReadAsStringAsync();
+                Debug.LogError("Response " + res.StatusCode + " from Google Photos media item SEARCH: " + content);
+                return false;
+            }
+
+            if (res.Content == null)
+            {
+                Debug.LogError("Null content from Google Photos media item SEARCH.");
+                return false;
+            }
+
+            string returnContent = await res.Content.ReadAsStringAsync();
+            SimpleJSON.JSONNode ret = SimpleJSON.JSON.Parse(returnContent);
+            if (ret.HasKey("nextPageToken"))
+            {
+                album.nextMediaItemsPageToken = ret["nextPageToken"];
+                album.hasMoreMediaItemsToLoad = true;
+            }
+            else
+            {
+                album.nextMediaItemsPageToken = "";
+                album.hasMoreMediaItemsToLoad = false;
+            }
+
+            SimpleJSON.JSONArray mediaItems = ret["mediaItems"].AsArray;
+            for (int i = 0; i < mediaItems.Count; i++)
+            {
+                SimpleJSON.JSONObject itemData = mediaItems[i].AsObject;
+                string id = itemData["id"];
+                string description = itemData["title"];
+                string mimeType = itemData["mimeType"];
+                string baseUrl = itemData["baseUrl"];
+                SimpleJSON.JSONObject mediaMetadata = itemData["mediaMetadata"].AsObject;
+                DateTime timestamp = DateTime.Parse(mediaMetadata["creationTime"]);
+                int width = int.Parse(mediaMetadata["width"]);
+                int height = int.Parse(mediaMetadata["height"]);
+                album.mediaItems[id] = new MediaItem(id, description, mimeType, baseUrl, timestamp, width, height);
+            }
+            return true;
+        }
     }
 }

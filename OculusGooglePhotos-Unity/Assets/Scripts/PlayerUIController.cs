@@ -90,7 +90,19 @@ public class PlayerUIController : MonoBehaviour
 
     public void LoadAlbumMediaItems(string albumKey)
     {
-        Debug.Log("Loading album " + albumKey);
+        DisplayLoader();
+
+        Task task = Task.Run(async () =>
+        {
+            await photosDataManager.FetchNextPageOfMediaItemsInAlbum(albumKey);
+        }).ContinueWith((t) =>
+        {
+            if (t.IsFaulted)
+            {
+                Debug.LogError(t.Exception);
+            }
+            if (t.IsCompleted) albumToDisplayOnNextFrame = albumKey;
+        });
     }
 
     void Update()

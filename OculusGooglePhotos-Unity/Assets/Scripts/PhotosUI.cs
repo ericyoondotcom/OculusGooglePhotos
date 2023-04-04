@@ -118,7 +118,7 @@ public class PhotosUI : MonoBehaviour
             PhotoUIEntry photoUIEntry = newEntry.GetComponent<PhotoUIEntry>();
             string imageUrl = null;
             if (mediaItem.IsPhoto) imageUrl = mediaItem.baseUrl + "=w500-h500-c";
-            else if (mediaItem.IsVideo) imageUrl = mediaItem.baseUrl + "=w500-h500-no-c";
+            else if (mediaItem.IsVideo) imageUrl = mediaItem.baseUrl + "=w500-h500-c";
             if(imageUrl != null) StartCoroutine(photoUIEntry.SetImageSprite(imageUrl));
             photoUIEntry.button.onClick.AddListener(() => OnSelectPhoto(kvp.Key));
         }
@@ -144,6 +144,7 @@ public class PhotosUI : MonoBehaviour
         }
         instantiatedPhotoKeys.Clear();
         instantiatedEntries.Clear();
+        scrollViewContent.anchoredPosition = Vector2.zero;
     }
 
     public void LoadMore()
