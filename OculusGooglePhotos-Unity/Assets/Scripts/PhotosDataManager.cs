@@ -6,6 +6,7 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using System.Web;
 using UnityEngine;
+using UnityEngine.Networking;
 
 public class PhotosDataManager : MonoBehaviour
 {
@@ -198,5 +199,40 @@ public class PhotosDataManager : MonoBehaviour
             }
             return true;
         }
+    }
+
+    public IEnumerator DownloadMediaContent(MediaItem mediaItem, Action<MediaItem> callback)
+    {
+        if (mediaItem.IsPhoto)
+        {
+            string url = mediaItem.baseUrl + "=d";
+
+            using (UnityWebRequest req = UnityWebRequestTexture.GetTexture(url))
+            {
+                yield return req.SendWebRequest();
+                if (req.result != UnityWebRequest.Result.Success)
+                {
+                    Debug.LogError("Download media returned error: " + req.result);
+                    yield break;
+                }
+                var texture = DownloadHandlerTexture.GetContent(req);
+                mediaItem.SetDownloadedProperties(texture);
+            }
+
+            // TODO
+            // Check the XMP data for a projection field, and set a defaultProjection
+            // field in the MediaItem
+            callback(mediaItem);
+        }
+        else if (mediaItem.IsVideo)
+        {
+            Debug.LogError("Do not call DownloadMediaContent on videos. Use Unity's video player.");
+            yield break;
+        }
+        else
+        {
+            Debug.LogError("Media is neither photo nor video.");
+            yield break;
+        };
     }
 }

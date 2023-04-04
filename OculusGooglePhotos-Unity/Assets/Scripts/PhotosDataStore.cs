@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 public class PhotosDataStore
 {
@@ -44,6 +45,8 @@ public class MediaItem {
     public int width;
     public int height;
 
+    public Texture2D downloadedTexture;
+
     public MediaItem(string id, string description, string mimeType, string baseUrl, DateTime timestamp, int width, int height)
     {
         this.id = id;
@@ -53,6 +56,11 @@ public class MediaItem {
         this.timestamp = timestamp;
         this.width = width;
         this.height = height;
+    }
+
+    public void SetDownloadedProperties(Texture2D downloadedTexture)
+    {
+        this.downloadedTexture = downloadedTexture;
     }
 
     public bool IsPhoto

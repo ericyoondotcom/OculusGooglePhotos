@@ -122,7 +122,7 @@ public class PhotosUI : MonoBehaviour
             if (mediaItem.IsPhoto) imageUrl = mediaItem.baseUrl + "=w500-h500-c";
             else if (mediaItem.IsVideo) imageUrl = mediaItem.baseUrl + "=w500-h500-c";
             if(imageUrl != null) StartCoroutine(photoUIEntry.SetImageSprite(imageUrl));
-            photoUIEntry.button.onClick.AddListener(() => OnSelectPhoto(kvp.Key));
+            photoUIEntry.button.onClick.AddListener(() => OnSelectPhoto(mediaItem));
         }
     }
 
@@ -162,10 +162,11 @@ public class PhotosUI : MonoBehaviour
         }
     }
 
-    void OnSelectPhoto(string photoId)
+    void OnSelectPhoto(MediaItem mediaItem)
     {
-        if (!instantiatedEntries.ContainsKey(photoId)) return;
-        PhotoUIEntry entry = instantiatedEntries[photoId];
+        playerUIController.DisplayLoader();
+        if (!instantiatedEntries.ContainsKey(mediaItem.id)) return;
+        PhotoUIEntry entry = instantiatedEntries[mediaItem.id];
         if (selectedEntry != null)
         {
             selectedEntry.SetSelected(false);
@@ -179,10 +180,22 @@ public class PhotosUI : MonoBehaviour
             entry.SetSelected(true);
             selectedEntry = entry;
         }
-        // TODO
-        // Make a web request to get the photo with the =d flag
-        // Check the XMP data for a projection field, and auto-set the photo type
-        // Set currentMediaItem of photoDisplayer and call its DisplayPhoto()
+
+        if (mediaItem.downloadedTexture == null)
+        {
+            StartCoroutine(playerUIController.photosDataManager.DownloadMediaContent(mediaItem, AfterPhotoDownloaded));
+        }
+        else
+        {
+            AfterPhotoDownloaded(mediaItem);
+        }
+    }
+
+    void AfterPhotoDownloaded(MediaItem mediaItem)
+    {
+        playerUIController.HideLoader();
+        photoDisplayer.currentMediaItem = mediaItem;
+        photoDisplayer.DisplayPhoto();
     }
 
     public void OnFilterButtonClick()
@@ -248,7 +261,7 @@ public class PhotosUI : MonoBehaviour
     public void OnFormatSelect(Utility.PhotoTypes type)
     {
         formatModal.SetActive(false);
-        photoDisplayer.photoType = type;
+        photoDisplayer.PhotoType = type;
         switch (type)
         {
             case Utility.PhotoTypes.RectangularMono:

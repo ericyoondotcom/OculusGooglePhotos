@@ -20,14 +20,18 @@ public class PlayerUIController : MonoBehaviour
     {
         albumUI.playerUIController = this;
         photosUI.playerUIController = this;
+        albumUI.gameObject.SetActive(false);
+        photosUI.gameObject.SetActive(false);
         LoadAlbums();
     }
 
     public void DisplayLoader()
     {
         loader.SetActive(true);
-        albumUI.gameObject.SetActive(false);
-        photosUI.gameObject.SetActive(false);
+    }
+    public void HideLoader()
+    {
+        loader.SetActive(false);
     }
 
     public void DisplayAlbumUI()

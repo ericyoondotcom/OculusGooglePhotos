@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.Networking;
 
 public class PhotoUIEntry : MonoBehaviour
 {
@@ -17,8 +18,16 @@ public class PhotoUIEntry : MonoBehaviour
 
     public IEnumerator SetImageSprite(string url)
     {
-        WWW www = new WWW(url);
-        yield return www;
-        image.sprite = Sprite.Create(www.texture, new Rect(0, 0, www.texture.width, www.texture.height), Vector2.zero);
+        using (UnityWebRequest req = UnityWebRequestTexture.GetTexture(url))
+        {
+            yield return req.SendWebRequest();
+            if (req.result != UnityWebRequest.Result.Success)
+            {
+                Debug.LogError("Image fetch returned error: " + req.result);
+                yield break;
+            }
+            var texture = DownloadHandlerTexture.GetContent(req);
+            image.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.zero);
+        }
     }
 }
