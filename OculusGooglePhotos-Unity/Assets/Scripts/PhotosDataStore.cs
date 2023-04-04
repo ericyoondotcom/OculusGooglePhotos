@@ -46,6 +46,7 @@ public class MediaItem {
     public int height;
 
     public Texture2D downloadedTexture;
+    public string videoDownloadCanonURL;
 
     public MediaItem(string id, string description, string mimeType, string baseUrl, DateTime timestamp, int width, int height)
     {

@@ -16,6 +16,10 @@ public class PhotosDataManager : MonoBehaviour
     public int numMediaItemsPerPage = 10;
 
     readonly HttpClient client = new HttpClient();
+    readonly HttpClient clientWithoutRedirects = new HttpClient(new HttpClientHandler()
+    {
+        AllowAutoRedirect = false
+    });
 
     public async Task<bool> FetchNextPageOfAlbumData()
     {
@@ -234,5 +238,41 @@ public class PhotosDataManager : MonoBehaviour
             Debug.LogError("Media is neither photo nor video.");
             yield break;
         };
+    }
+
+    // Google Photos gives a download URL that results in a 302.
+    // Unity Video Player does not follow redirects.
+    // We have to follow the redirect trail ourselves to get to the real mp4.
+    public async Task<bool> FollowRedirectForVideoURL(MediaItem mediaItem)
+    {
+        if (!mediaItem.IsVideo)
+        {
+            Debug.LogError("FollowRedirectForVideoURL only supports MediaItems of type video.");
+            return false;
+        }
+        string url = mediaItem.baseUrl + "=dv";
+
+        using (HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Get, url))
+        {
+            HttpResponseMessage res = await clientWithoutRedirects.SendAsync(req);
+
+            if (res.StatusCode == System.Net.HttpStatusCode.Redirect)
+            {
+                Uri newLocation = res.Headers.Location;
+                if (newLocation == null)
+                {
+                    Debug.LogError("New location header not present.");
+                    return false;
+                }
+                mediaItem.videoDownloadCanonURL = newLocation.ToString();
+                return true;
+            }
+            else
+            {
+                Debug.LogWarning("Response was not 302.");
+                return false;
+            }
+
+        }
     }
 }

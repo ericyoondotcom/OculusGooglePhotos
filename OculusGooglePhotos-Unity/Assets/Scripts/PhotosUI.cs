@@ -4,6 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
+using System.Threading.Tasks;
 
 public class PhotosUI : MonoBehaviour
 {
@@ -40,6 +41,7 @@ public class PhotosUI : MonoBehaviour
     List<string> instantiatedPhotoKeys = new List<string>();
     Dictionary<string, PhotoUIEntry> instantiatedEntries = new Dictionary<string, PhotoUIEntry>();
     PhotoUIEntry selectedEntry;
+    bool displayVideoOnNextFrame = false;
 
     private void Start()
     {
@@ -181,14 +183,48 @@ public class PhotosUI : MonoBehaviour
             selectedEntry = entry;
         }
 
-        if (mediaItem.downloadedTexture == null)
+        if (mediaItem.IsPhoto)
         {
-            StartCoroutine(playerUIController.photosDataManager.DownloadMediaContent(mediaItem, AfterPhotoDownloaded));
+            if (mediaItem.downloadedTexture == null)
+            {
+                StartCoroutine(playerUIController.photosDataManager.DownloadMediaContent(mediaItem, AfterPhotoDownloaded));
+            }
+            else
+            {
+                AfterPhotoDownloaded(mediaItem);
+            }
         }
-        else
+        else if (mediaItem.IsVideo)
         {
-            AfterPhotoDownloaded(mediaItem);
+            if (mediaItem.videoDownloadCanonURL == null)
+            {
+                GetCanonUrlForVideo(mediaItem);
+            }
+            else
+            {
+                photoDisplayer.currentMediaItem = mediaItem;
+                displayVideoOnNextFrame = true;
+            }
         }
+    }
+
+    void GetCanonUrlForVideo(MediaItem mediaItem)
+    {
+        Task task = Task.Run(async () =>
+        {
+            await playerUIController.photosDataManager.FollowRedirectForVideoURL(mediaItem);
+        }).ContinueWith((t) =>
+        {
+            if (t.IsFaulted)
+            {
+                Debug.LogError(t.Exception);
+            }
+            if (t.IsCompleted)
+            {
+                photoDisplayer.currentMediaItem = mediaItem;
+                displayVideoOnNextFrame = true;
+            }
+        });
     }
 
     void AfterPhotoDownloaded(MediaItem mediaItem)
@@ -280,6 +316,16 @@ public class PhotosUI : MonoBehaviour
             default:
                 formatButtonIcon.sprite = null;
                 break;
+        }
+    }
+
+    private void Update()
+    {
+        if (displayVideoOnNextFrame)
+        {
+            playerUIController.HideLoader();
+            photoDisplayer.DisplayVideo();
+            displayVideoOnNextFrame = false;
         }
     }
 }
