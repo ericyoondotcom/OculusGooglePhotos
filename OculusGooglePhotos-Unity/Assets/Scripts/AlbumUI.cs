@@ -6,7 +6,6 @@ using UnityEngine;
 public class AlbumUI : MonoBehaviour
 {
     public float entryGap;
-    public float contentHeightAddition;
 
     public RectTransform scrollViewContent;
     public RectTransform loadMoreButton;
@@ -20,21 +19,20 @@ public class AlbumUI : MonoBehaviour
 
     const int NUM_PERSISTENT_ENTRIES = 1;
 
-    private void Start()
-    {
-        entryHeight = albumEntryPrefab.GetComponent<RectTransform>().rect.height;
-    }
-
     public void DisplayAlbums(PhotosDataStore data)
     {
+        entryHeight = albumEntryPrefab.GetComponent<RectTransform>().rect.height;
         scrollViewContent.sizeDelta = new Vector2(
             0,
             (entryHeight + entryGap) * (data.albums.Count + NUM_PERSISTENT_ENTRIES) +
-            contentHeightAddition +
             loadMoreButton.rect.height +
             entryGap
         );
-        loadMoreButton.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Top, (entryHeight + entryGap) * (data.albums.Count + NUM_PERSISTENT_ENTRIES), loadMoreButton.rect.height);
+        loadMoreButton.SetInsetAndSizeFromParentEdge(
+            RectTransform.Edge.Top,
+            (entryHeight + entryGap) * (data.albums.Count + NUM_PERSISTENT_ENTRIES),
+            loadMoreButton.rect.height
+        );
         loadMoreButton.gameObject.SetActive(data.hasMoreAlbumPagesToLoad);
 
         for (int i = 0; i < data.albums.Count; i++) {
@@ -46,7 +44,11 @@ public class AlbumUI : MonoBehaviour
             GameObject newEntry = Instantiate(albumEntryPrefab, scrollViewContent);
             instantiatedEntries.Add(newEntry);
             RectTransform rt = newEntry.GetComponent<RectTransform>();
-            rt.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Top, (entryHeight + entryGap) * (i + NUM_PERSISTENT_ENTRIES), entryHeight);
+            rt.SetInsetAndSizeFromParentEdge(
+                RectTransform.Edge.Top,
+                (entryHeight + entryGap) * (i + NUM_PERSISTENT_ENTRIES),
+                entryHeight
+            );
             
             AlbumUIEntry albumUIEntry = newEntry.GetComponent<AlbumUIEntry>();
             string imageUrl = album.coverPhotoBaseUrl + "=w500-h500-c";

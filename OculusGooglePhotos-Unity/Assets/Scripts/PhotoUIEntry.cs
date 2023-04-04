@@ -7,6 +7,7 @@ using TMPro;
 public class PhotoUIEntry : MonoBehaviour
 {
     public Image image;
+    public Button button;
 
     public IEnumerator SetImageSprite(string url)
     {

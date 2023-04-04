@@ -36,5 +36,37 @@ public class Album {
 }
 
 public class MediaItem {
+    public string id;
+    public string description;
+    public string mimeType;
+    public string baseUrl;
+    public DateTime timestamp;
+    public int width;
+    public int height;
 
+    public MediaItem(string id, string description, string mimeType, string baseUrl, DateTime timestamp, int width, int height)
+    {
+        this.id = id;
+        this.description = description;
+        this.mimeType = mimeType;
+        this.baseUrl = baseUrl;
+        this.timestamp = timestamp;
+        this.width = width;
+        this.height = height;
+    }
+
+    public bool IsPhoto
+    {
+        get
+        {
+            return mimeType.Split('/')[0] == "image";
+        }
+    }
+    public bool IsVideo
+    {
+        get
+        {
+            return mimeType.Split('/')[0] == "video";
+        }
+    }
 }

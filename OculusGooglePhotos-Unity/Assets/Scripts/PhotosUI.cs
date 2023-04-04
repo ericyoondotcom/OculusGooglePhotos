@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Linq;
 
 public class PhotosUI : MonoBehaviour
 {
@@ -13,9 +14,7 @@ public class PhotosUI : MonoBehaviour
         StereoPhotosOnly,
         VideosOnly
     };
-
-    public float entryGap;
-    public float contentHeightAddition;
+    public float paddingLoadMoreButton;
     public int numColumnsPerRow;
     public Sprite iconRectangularMono;
     public Sprite iconRectangularStereo;
@@ -43,7 +42,6 @@ public class PhotosUI : MonoBehaviour
 
     private void Start()
     {
-        entryDimension = scrollViewContent.rect.width / numColumnsPerRow;
         formatModal.SetActive(false);
         filterModal.SetActive(false);
         OnFormatSelect(Utility.PhotoTypes.RectangularMono);
@@ -51,14 +49,14 @@ public class PhotosUI : MonoBehaviour
 
     public void DisplayLibrary(PhotosDataStore data)
     {
-        if(!isShowingLibrary || displayedAlbumId != null)
+        if (!isShowingLibrary || displayedAlbumId != null)
         {
             DestroyAllEntries();
         }
         isShowingLibrary = true;
         albumTitle.text = PlayerUIController.ALL_PHOTOS_TEXT;
         displayedAlbumId = null;
-        DisplayPhotos(data.library.mediaItems);
+        StartCoroutine(DisplayPhotos(data.library.mediaItems, data.library.hasMoreMediaItemsToLoad));
     }
 
     public void DisplayAlbum(PhotosDataStore data, string albumKey)
@@ -71,12 +69,59 @@ public class PhotosUI : MonoBehaviour
         isShowingLibrary = false;
         albumTitle.text = album.title;
         displayedAlbumId = album.id;
-        DisplayPhotos(album.mediaItems);
+        StartCoroutine(DisplayPhotos(album.mediaItems, album.hasMoreMediaItemsToLoad));
     }
 
-    void DisplayPhotos(Dictionary<string, MediaItem> mediaItems)
+    IEnumerator DisplayPhotos(Dictionary<string, MediaItem> mediaItems, bool hasMoreMediaItemsToLoad)
     {
+        yield return new WaitForEndOfFrame(); // Need to wait for canvas update to get size
+        entryDimension = scrollViewContent.rect.width / numColumnsPerRow;
 
+        int numRows = (int)Mathf.Ceil((float)mediaItems.Count / numColumnsPerRow);
+        scrollViewContent.sizeDelta = new Vector2(
+            0,
+            entryDimension * numRows +
+            paddingLoadMoreButton * 2 +
+            loadMoreButton.rect.height
+        );
+        loadMoreButton.SetInsetAndSizeFromParentEdge(
+            RectTransform.Edge.Top,
+            entryDimension * numRows + paddingLoadMoreButton,
+            loadMoreButton.rect.height
+        );
+        loadMoreButton.gameObject.SetActive(hasMoreMediaItemsToLoad);
+
+        for (int i = 0; i < mediaItems.Count; i++)
+        {
+            var kvp = mediaItems.ElementAt(i);
+            MediaItem mediaItem = kvp.Value;
+            if (instantiatedPhotoKeys.Contains(kvp.Key)) continue;
+            instantiatedPhotoKeys.Add(kvp.Key);
+
+            int row = i / numColumnsPerRow;
+            int col = i % numColumnsPerRow;
+
+            GameObject newEntry = Instantiate(photoEntryPrefab, scrollViewContent);
+            instantiatedEntries.Add(newEntry);
+            RectTransform rt = newEntry.GetComponent<RectTransform>();
+            rt.SetInsetAndSizeFromParentEdge(
+                RectTransform.Edge.Top,
+                entryDimension * row,
+                entryDimension
+            );
+            rt.SetInsetAndSizeFromParentEdge(
+                RectTransform.Edge.Left,
+                entryDimension * col,
+                entryDimension
+            );
+
+            PhotoUIEntry photoUIEntry = newEntry.GetComponent<PhotoUIEntry>();
+            string imageUrl = null;
+            if (mediaItem.IsPhoto) imageUrl = mediaItem.baseUrl + "=w500-h500-c";
+            else if (mediaItem.IsVideo) imageUrl = mediaItem.baseUrl + "=w500-h500-no-c";
+            if(imageUrl != null) StartCoroutine(photoUIEntry.SetImageSprite(imageUrl));
+            photoUIEntry.button.onClick.AddListener(() => OnSelectPhoto(kvp.Key));
+        }
     }
 
     void Refresh()

@@ -13,7 +13,9 @@ public class PlayerUIController : MonoBehaviour
     public PhotosUI photosUI;
 
     bool displayAlbumsOnNextFrame;
-
+    bool displayLibraryOnNextFrame;
+    string albumToDisplayOnNextFrame;
+    
     void Start()
     {
         albumUI.playerUIController = this;
@@ -71,7 +73,19 @@ public class PlayerUIController : MonoBehaviour
 
     public void LoadLibraryMediaItems()
     {
-        Debug.Log("Loading library!");
+        DisplayLoader();
+
+        Task task = Task.Run(async () =>
+        {
+            await photosDataManager.FetchNextPageOfLibraryMediaItems();
+        }).ContinueWith((t) =>
+        {
+            if (t.IsFaulted)
+            {
+                Debug.LogError(t.Exception);
+            }
+            if (t.IsCompleted) displayLibraryOnNextFrame = true;
+        });
     }
 
     public void LoadAlbumMediaItems(string albumKey)
@@ -85,6 +99,16 @@ public class PlayerUIController : MonoBehaviour
         {
             DisplayAlbumUI();
             displayAlbumsOnNextFrame = false;
+        }
+        else if (displayLibraryOnNextFrame)
+        {
+            DisplayPhotosFromLibrary();
+            displayLibraryOnNextFrame = false;
+        }
+        else if (albumToDisplayOnNextFrame != null)
+        {
+            DisplayPhotosFromAlbum(albumToDisplayOnNextFrame);
+            albumToDisplayOnNextFrame = null;
         }
     }
 }
