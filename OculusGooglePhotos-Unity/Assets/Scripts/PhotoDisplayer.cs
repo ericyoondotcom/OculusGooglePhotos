@@ -10,7 +10,6 @@ public class PhotoDisplayer : MonoBehaviour
     public Material defaultSkyboxMaterial;
     public RawImage rectangularDisplayRaw;
     public RectTransform photoDisplayCanvas;
-    public RenderTexture renderTexture;
     public VideoPlayer videoPlayer;
 
     [System.NonSerialized]
@@ -41,9 +40,12 @@ public class PhotoDisplayer : MonoBehaviour
     public void DisplayPhoto()
     {
         if (currentMediaItem == null) return;
-        if (currentMediaItem.downloadedTexture == null) return;
+        if (currentMediaItem.downloadedImageTexture == null) return;
 
         float aspectRatio = (float)currentMediaItem.width / currentMediaItem.height;
+
+        videoPlayer.Pause();
+        videoPlayer.url = "";
 
         switch (PhotoType)
         {
@@ -55,7 +57,7 @@ public class PhotoDisplayer : MonoBehaviour
                         photoDisplayCanvas.sizeDelta.y * aspectRatio,
                         photoDisplayCanvas.sizeDelta.y
                     );
-                    rectangularDisplayRaw.texture = currentMediaItem.downloadedTexture;
+                    rectangularDisplayRaw.texture = currentMediaItem.downloadedImageTexture;
                     break;
                 }
             case Utility.PhotoTypes.RectangularStereo:
@@ -66,7 +68,7 @@ public class PhotoDisplayer : MonoBehaviour
                 {
                     photoDisplayCanvas.gameObject.SetActive(false);
                     Material mat = new Material(skyboxShader);
-                    mat.mainTexture = currentMediaItem.downloadedTexture;
+                    mat.mainTexture = currentMediaItem.downloadedImageTexture;
                     mat.SetFloat("Mapping", 1);
                     RenderSettings.skybox = mat;
                     break;
@@ -90,16 +92,21 @@ public class PhotoDisplayer : MonoBehaviour
         if (currentMediaItem == null) return;
 
         float aspectRatio = (float)currentMediaItem.width / currentMediaItem.height;
+        int rtWidth = currentMediaItem.width;
+        int rtHeight = currentMediaItem.height;
 
-        renderTexture.width = currentMediaItem.width;
-        renderTexture.height = currentMediaItem.height;
+        if (currentMediaItem.width == currentMediaItem.height && PhotoType == Utility.PhotoTypes.SphericalMono)
+        {
+            // Google Photos API incorrectly changes the aspect ratio of
+            // monoscopic spherical videos. See my issue on the issue tracker:
+            // https://issuetracker.google.com/issues/277176957
+            // This code fixes this.
+            rtWidth = rtHeight * 2;
+        }
 
-        videoPlayer.url = currentMediaItem.videoDownloadCanonURL;
-        // TODO: Unfortunately, Unity video player has a bug where it only plays
-        // files that end in .mp4 etc, even if the URL leads to valid bytes.
-        // See https://forum.unity.com/threads/big-bug-in-5-6-videoplayer.469153/
-        // So, we will have to download the bytes of the video and supply
-        // them to the video player :(
+        RenderTexture renderTexture = new RenderTexture(currentMediaItem.width, currentMediaItem.height, UnityEngine.Experimental.Rendering.GraphicsFormat.R8G8B8A8_SRGB, UnityEngine.Experimental.Rendering.GraphicsFormat.D32_SFloat_S8_UInt, 0);
+
+        videoPlayer.url = "file://" + currentMediaItem.downloadedVideoFilePath;
         videoPlayer.targetTexture = renderTexture;
         videoPlayer.Play();
 
@@ -122,7 +129,11 @@ public class PhotoDisplayer : MonoBehaviour
                 }
             case Utility.PhotoTypes.SphericalMono:
                 {
-                    
+                    photoDisplayCanvas.gameObject.SetActive(false);
+                    Material mat = new Material(skyboxShader);
+                    mat.mainTexture = renderTexture;
+                    mat.SetFloat("Mapping", 1);
+                    RenderSettings.skybox = mat;
                     break;
                 }
             case Utility.PhotoTypes.SphericalStereo:
@@ -137,5 +148,13 @@ public class PhotoDisplayer : MonoBehaviour
                     break;
                 }
         }
+    }
+
+    public void StopDisplaying()
+    {
+        videoPlayer.Pause();
+        videoPlayer.url = "";
+        RenderSettings.skybox = defaultSkyboxMaterial;
+        photoDisplayCanvas.gameObject.SetActive(false);
     }
 }

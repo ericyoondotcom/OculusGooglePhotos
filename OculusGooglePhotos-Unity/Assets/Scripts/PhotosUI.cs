@@ -185,9 +185,9 @@ public class PhotosUI : MonoBehaviour
 
         if (mediaItem.IsPhoto)
         {
-            if (mediaItem.downloadedTexture == null)
+            if (mediaItem.downloadedImageTexture == null)
             {
-                StartCoroutine(playerUIController.photosDataManager.DownloadMediaContent(mediaItem, AfterPhotoDownloaded));
+                StartCoroutine(playerUIController.photosDataManager.DownloadPhotoContent(mediaItem, AfterPhotoDownloaded));
             }
             else
             {
@@ -196,9 +196,9 @@ public class PhotosUI : MonoBehaviour
         }
         else if (mediaItem.IsVideo)
         {
-            if (mediaItem.videoDownloadCanonURL == null)
+            if (mediaItem.downloadedVideoFilePath == null)
             {
-                GetCanonUrlForVideo(mediaItem);
+                StartCoroutine(playerUIController.photosDataManager.DownloadVideoContent(mediaItem, AfterVideoDownloaded));
             }
             else
             {
@@ -208,23 +208,13 @@ public class PhotosUI : MonoBehaviour
         }
     }
 
-    void GetCanonUrlForVideo(MediaItem mediaItem)
+    public void ClearSelection()
     {
-        Task task = Task.Run(async () =>
+        if (selectedEntry != null)
         {
-            await playerUIController.photosDataManager.FollowRedirectForVideoURL(mediaItem);
-        }).ContinueWith((t) =>
-        {
-            if (t.IsFaulted)
-            {
-                Debug.LogError(t.Exception);
-            }
-            if (t.IsCompleted)
-            {
-                photoDisplayer.currentMediaItem = mediaItem;
-                displayVideoOnNextFrame = true;
-            }
-        });
+            selectedEntry.SetSelected(false);
+            selectedEntry = null;
+        }
     }
 
     void AfterPhotoDownloaded(MediaItem mediaItem)
@@ -232,6 +222,13 @@ public class PhotosUI : MonoBehaviour
         playerUIController.HideLoader();
         photoDisplayer.currentMediaItem = mediaItem;
         photoDisplayer.DisplayPhoto();
+    }
+
+    void AfterVideoDownloaded(MediaItem mediaItem)
+    {
+        playerUIController.HideLoader();
+        photoDisplayer.currentMediaItem = mediaItem;
+        photoDisplayer.DisplayVideo();
     }
 
     public void OnFilterButtonClick()

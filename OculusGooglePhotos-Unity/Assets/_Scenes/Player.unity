@@ -708,7 +708,7 @@ VideoPlayer:
   m_TargetMaterialRenderer: {fileID: 0}
   m_TargetMaterialProperty: <noninit>
   m_RenderMode: 2
-  m_AspectRatio: 2
+  m_AspectRatio: 5
   m_DataSource: 1
   m_PlaybackSpeed: 1
   m_AudioOutputMode: 2
@@ -716,7 +716,7 @@ VideoPlayer:
   - {fileID: 0}
   m_DirectAudioVolumes:
   - 1
-  m_Url: http://localhost:3000/lol
+  m_Url: 
   m_EnabledAudioTracks: 01
   m_DirectAudioMutes: 00
   m_ControlledAudioTrackCount: 1
@@ -2858,7 +2858,6 @@ MonoBehaviour:
   defaultSkyboxMaterial: {fileID: 2100000, guid: ede66d7f4c1764708afb3f85c068f9c9, type: 2}
   rectangularDisplayRaw: {fileID: 833127277}
   photoDisplayCanvas: {fileID: 1845793987}
-  renderTexture: {fileID: 8400000, guid: 9051eecfdcca74c91bbc937db26e7f59, type: 2}
   videoPlayer: {fileID: 166169864}
 --- !u!4 &1528656860
 Transform:

@@ -39,19 +39,21 @@ public class Album {
 public class MediaItem {
     public string id;
     public string description;
+    public string originalFilename;
     public string mimeType;
     public string baseUrl;
     public DateTime timestamp;
     public int width;
     public int height;
 
-    public Texture2D downloadedTexture;
-    public string videoDownloadCanonURL;
+    public Texture2D downloadedImageTexture;
+    public string downloadedVideoFilePath;
 
-    public MediaItem(string id, string description, string mimeType, string baseUrl, DateTime timestamp, int width, int height)
+    public MediaItem(string id, string description, string originalFilename, string mimeType, string baseUrl, DateTime timestamp, int width, int height)
     {
         this.id = id;
         this.description = description;
+        this.originalFilename = originalFilename;
         this.mimeType = mimeType;
         this.baseUrl = baseUrl;
         this.timestamp = timestamp;
@@ -59,9 +61,14 @@ public class MediaItem {
         this.height = height;
     }
 
-    public void SetDownloadedProperties(Texture2D downloadedTexture)
+    public void OnPhotoDownloaded(Texture2D downloadedImageTexture)
     {
-        this.downloadedTexture = downloadedTexture;
+        this.downloadedImageTexture = downloadedImageTexture;
+    }
+
+    public void OnVideoDownloaded(string downloadedVideoFilePath)
+    {
+        this.downloadedVideoFilePath = downloadedVideoFilePath;
     }
 
     public bool IsPhoto
@@ -76,6 +83,16 @@ public class MediaItem {
         get
         {
             return mimeType.Split('/')[0] == "video";
+        }
+    }
+
+    public string OriginalFilenameExtension
+    {
+        get
+        {
+            var split = originalFilename.Split(".");
+            if (split.Length <= 1) return "";
+            return split[split.Length - 1];
         }
     }
 }

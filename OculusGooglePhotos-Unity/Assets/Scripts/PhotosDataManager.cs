@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using System.Web;
+using UnityEditor.VersionControl;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -129,13 +130,14 @@ public class PhotosDataManager : MonoBehaviour
                 SimpleJSON.JSONObject itemData = mediaItems[i].AsObject;
                 string id = itemData["id"];
                 string description = itemData["title"];
+                string filename = itemData["filename"];
                 string mimeType = itemData["mimeType"];
                 string baseUrl = itemData["baseUrl"];
                 SimpleJSON.JSONObject mediaMetadata = itemData["mediaMetadata"].AsObject;
                 DateTime timestamp = DateTime.Parse(mediaMetadata["creationTime"]);
                 int width = int.Parse(mediaMetadata["width"]);
                 int height = int.Parse(mediaMetadata["height"]);
-                data.library.mediaItems[id] = new MediaItem(id, description, mimeType, baseUrl, timestamp, width, height);
+                data.library.mediaItems[id] = new MediaItem(id, description, filename, mimeType, baseUrl, timestamp, width, height);
             }
             return true;
         }
@@ -193,86 +195,83 @@ public class PhotosDataManager : MonoBehaviour
                 SimpleJSON.JSONObject itemData = mediaItems[i].AsObject;
                 string id = itemData["id"];
                 string description = itemData["title"];
+                string filename = itemData["filename"];
                 string mimeType = itemData["mimeType"];
                 string baseUrl = itemData["baseUrl"];
                 SimpleJSON.JSONObject mediaMetadata = itemData["mediaMetadata"].AsObject;
                 DateTime timestamp = DateTime.Parse(mediaMetadata["creationTime"]);
                 int width = int.Parse(mediaMetadata["width"]);
                 int height = int.Parse(mediaMetadata["height"]);
-                album.mediaItems[id] = new MediaItem(id, description, mimeType, baseUrl, timestamp, width, height);
+                album.mediaItems[id] = new MediaItem(id, description, filename, mimeType, baseUrl, timestamp, width, height);
             }
             return true;
         }
     }
 
-    public IEnumerator DownloadMediaContent(MediaItem mediaItem, Action<MediaItem> callback)
+    public IEnumerator DownloadPhotoContent(MediaItem mediaItem, Action<MediaItem> callback)
     {
-        if (mediaItem.IsPhoto)
+        if (!mediaItem.IsPhoto)
         {
-            string url = mediaItem.baseUrl + "=d";
+            Debug.LogError("DownloadPhotoContent called on media that does not have a photo MIME type");
+            yield break;
+        }
 
-            using (UnityWebRequest req = UnityWebRequestTexture.GetTexture(url))
+        string url = mediaItem.baseUrl + "=d";
+
+        using (UnityWebRequest req = UnityWebRequestTexture.GetTexture(url))
+        {
+            yield return req.SendWebRequest();
+            if (req.result != UnityWebRequest.Result.Success)
             {
-                yield return req.SendWebRequest();
-                if (req.result != UnityWebRequest.Result.Success)
-                {
-                    Debug.LogError("Download media returned error: " + req.result);
-                    yield break;
-                }
-                var texture = DownloadHandlerTexture.GetContent(req);
-                mediaItem.SetDownloadedProperties(texture);
+                Debug.LogError("Download image returned error: " + req.result);
+                yield break;
             }
+            var texture = DownloadHandlerTexture.GetContent(req);
+            mediaItem.OnPhotoDownloaded(texture);
+        }
 
-            // TODO
-            // Check the XMP data for a projection field, and set a defaultProjection
-            // field in the MediaItem
-            callback(mediaItem);
-        }
-        else if (mediaItem.IsVideo)
-        {
-            Debug.LogError("Do not call DownloadMediaContent on videos. Use Unity's video player.");
-            yield break;
-        }
-        else
-        {
-            Debug.LogError("Media is neither photo nor video.");
-            yield break;
-        };
+        // TODO
+        // Check the XMP data for a projection field, and set a defaultProjection
+        // field in the MediaItem
+        callback(mediaItem);
     }
 
-    // Google Photos gives a download URL that results in a 302.
-    // Unity Video Player does not follow redirects.
-    // We have to follow the redirect trail ourselves to get to the real mp4.
-    public async Task<bool> FollowRedirectForVideoURL(MediaItem mediaItem)
+    public IEnumerator DownloadVideoContent(MediaItem mediaItem, Action<MediaItem> callback)
     {
         if (!mediaItem.IsVideo)
         {
-            Debug.LogError("FollowRedirectForVideoURL only supports MediaItems of type video.");
-            return false;
+            Debug.LogError("DownloadVideoContent called on media that does not have a video MIME type");
+            yield break;
         }
+
         string url = mediaItem.baseUrl + "=dv";
+        string uuid = Utility.GenerateUUID();
 
-        using (HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Get, url))
+        using (UnityWebRequest req = UnityWebRequest.Get(url))
         {
-            HttpResponseMessage res = await clientWithoutRedirects.SendAsync(req);
-
-            if (res.StatusCode == System.Net.HttpStatusCode.Redirect)
+            yield return req.SendWebRequest();
+            if (req.result != UnityWebRequest.Result.Success)
             {
-                Uri newLocation = res.Headers.Location;
-                if (newLocation == null)
-                {
-                    Debug.LogError("New location header not present.");
-                    return false;
-                }
-                mediaItem.videoDownloadCanonURL = newLocation.ToString();
-                return true;
+                Debug.LogError("Download video returned error: " + req.result);
+                yield break;
             }
-            else
-            {
-                Debug.LogWarning("Response was not 302.");
-                return false;
-            }
-
+            string savePath = string.Format(
+                "{0}/{1}.{2}",
+                Application.temporaryCachePath,
+                uuid,
+                mediaItem.OriginalFilenameExtension
+            );
+            Debug.Log("Check " + savePath);
+            var writeTask = System.IO.File.WriteAllBytesAsync(savePath, req.downloadHandler.data);
+            yield return new WaitUntil(() => writeTask.IsCompleted);
+            mediaItem.OnVideoDownloaded(savePath);
+            callback(mediaItem);
         }
+
+        // TODO
+        // Check the XMP data for a projection field, and set a defaultProjection
+        // field in the MediaItem
+        callback(mediaItem);
+        
     }
 }

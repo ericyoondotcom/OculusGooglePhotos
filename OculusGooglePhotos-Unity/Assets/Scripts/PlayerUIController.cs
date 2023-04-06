@@ -40,6 +40,8 @@ public class PlayerUIController : MonoBehaviour
         albumUI.gameObject.SetActive(true);
         photosUI.gameObject.SetActive(false);
         albumUI.DisplayAlbums(photosDataManager.data);
+        photosUI.photoDisplayer.StopDisplaying();
+        photosUI.ClearSelection();
     }
 
     public void DisplayPhotosFromLibrary()

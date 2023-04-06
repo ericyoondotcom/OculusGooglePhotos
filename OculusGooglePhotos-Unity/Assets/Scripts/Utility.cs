@@ -9,5 +9,10 @@ public class Utility
         SphericalMono,
         SphericalStereo
     }
-}
 
+    public static string GenerateUUID()
+    {
+        Guid guid = Guid.NewGuid();
+        return guid.ToString();
+    }
+}
