@@ -224,6 +224,8 @@ public class PhotosUI : MonoBehaviour
 
     void AfterPhotoDownloaded(MediaItem mediaItem)
     {
+        photoDisplayer.currentMediaItem = null;
+        SwitchPhotoTypeBasedOnMetadata(mediaItem);
         playerUIController.HideLoader();
         photoDisplayer.currentMediaItem = mediaItem;
         photoDisplayer.DisplayPhoto();
@@ -231,9 +233,23 @@ public class PhotosUI : MonoBehaviour
 
     void AfterVideoDownloaded(MediaItem mediaItem)
     {
+        photoDisplayer.currentMediaItem = null;
+        SwitchPhotoTypeBasedOnMetadata(mediaItem);
         playerUIController.HideLoader();
         photoDisplayer.currentMediaItem = mediaItem;
         photoDisplayer.DisplayVideo();
+    }
+
+    void SwitchPhotoTypeBasedOnMetadata(MediaItem mediaItem)
+    {
+        if (mediaItem.projection == "equirectangular")
+        {
+            OnFormatSelect(Utility.PhotoTypes.SphericalMono);
+        }
+        else
+        {
+            OnFormatSelect(Utility.PhotoTypes.RectangularMono);
+        }
     }
 
     public void OnFilterButtonClick()

@@ -50,7 +50,6 @@ public class PhotoDisplayer : MonoBehaviour
 
         videoPlayer.Pause();
         videoPlayer.url = "";
-        Debug.Log(PhotoType);
         switch (PhotoType)
         {
             case Utility.PhotoTypes.RectangularMono:

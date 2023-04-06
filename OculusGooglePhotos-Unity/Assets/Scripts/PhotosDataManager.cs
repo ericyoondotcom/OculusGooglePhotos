@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
@@ -8,6 +9,10 @@ using System.Web;
 using UnityEditor.VersionControl;
 using UnityEngine;
 using UnityEngine.Networking;
+using XmpCore;
+using MetadataExtractor;
+using MetadataExtractor.Formats.Xmp;
+using System.Linq;
 
 public class PhotosDataManager : MonoBehaviour
 {
@@ -234,12 +239,10 @@ public class PhotosDataManager : MonoBehaviour
                 yield break;
             }
             var texture = DownloadHandlerTexture.GetContent(req);
-            mediaItem.OnPhotoDownloaded(texture);
+            byte[] bytes = req.downloadHandler.data;
+            mediaItem.OnPhotoDownloaded(texture, bytes);
         }
-
-        // TODO
-        // Check the XMP data for a projection field, and set a defaultProjection
-        // field in the MediaItem
+        RetrieveXMPData(mediaItem);
         callback(mediaItem);
     }
 
@@ -278,13 +281,50 @@ public class PhotosDataManager : MonoBehaviour
             var writeTask = System.IO.File.WriteAllBytesAsync(savePath, req.downloadHandler.data);
             yield return new WaitUntil(() => writeTask.IsCompleted);
             mediaItem.OnVideoDownloaded(savePath);
-            callback(mediaItem);
+        }
+        RetrieveXMPData(mediaItem);
+        callback(mediaItem);
+    }
+
+    public void RetrieveXMPData(MediaItem mediaItem)
+    {
+        Stream stream = null;
+        if (mediaItem.IsPhoto && mediaItem.imageBytes != null)
+        {
+            stream = new MemoryStream(mediaItem.imageBytes);
+        }
+        else if(mediaItem.IsVideo && mediaItem.downloadedVideoFilePath != null)
+        {
+            stream = File.OpenRead(mediaItem.downloadedVideoFilePath);
+        }
+        if (stream == null)
+        {
+            Debug.LogError("Stream was null, could not read XMP");
+            return;
         }
 
-        // TODO
-        // Check the XMP data for a projection field, and set a defaultProjection
-        // field in the MediaItem
-        callback(mediaItem);
-        
+        var dirs = ImageMetadataReader.ReadMetadata(stream);
+        var xmpDir = dirs.OfType<XmpDirectory>().FirstOrDefault();
+
+        if (xmpDir?.XmpMeta == null)
+        {
+            Debug.LogWarning("XMP metadata is null, skipping");
+            return;
+        }
+        var properties = xmpDir.XmpMeta.Properties;
+
+        string projection = null;
+
+        foreach (var property in properties)
+        {
+            Debug.Log($"Path={property.Path} Namespace={property.Namespace} Value={property.Value}");
+            if (property.Path == null || property.Value == null) continue;
+            if (property.Path.Contains("ProjectionType"))
+            {
+                projection = property.Value;
+            }
+        }
+
+        mediaItem.SetMetadata(projection);
     }
 }

@@ -551,6 +551,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Filter button
       objectReference: {fileID: 0}
+    - target: {fileID: 410526686851330706, guid: e8d3f39c8d7e34d05a8b68ce33365a12, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 410526686851330707, guid: e8d3f39c8d7e34d05a8b68ce33365a12, type: 3}
       propertyPath: m_Pivot.x
       value: 1
@@ -4008,8 +4012,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -27.5, y: -15}
-  m_SizeDelta: {x: -195, y: 40}
+  m_AnchoredPosition: {x: 0, y: -15}
+  m_SizeDelta: {x: -140, y: 40}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!1001 &1968791574
 PrefabInstance:

@@ -46,7 +46,10 @@ public class MediaItem {
     public int width;
     public int height;
 
+    public string projection;
+
     public Texture2D downloadedImageTexture;
+    public byte[] imageBytes;
     public string downloadedVideoFilePath;
 
     public MediaItem(string id, string description, string originalFilename, string mimeType, string baseUrl, DateTime timestamp, int width, int height)
@@ -61,14 +64,20 @@ public class MediaItem {
         this.height = height;
     }
 
-    public void OnPhotoDownloaded(Texture2D downloadedImageTexture)
+    public void OnPhotoDownloaded(Texture2D downloadedImageTexture, byte[] imageBytes)
     {
         this.downloadedImageTexture = downloadedImageTexture;
+        this.imageBytes = imageBytes;
     }
 
     public void OnVideoDownloaded(string downloadedVideoFilePath)
     {
         this.downloadedVideoFilePath = downloadedVideoFilePath;
+    }
+
+    public void SetMetadata(string projection)
+    {
+        this.projection = projection;
     }
 
     public bool IsPhoto
