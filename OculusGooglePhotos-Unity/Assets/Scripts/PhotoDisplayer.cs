@@ -27,7 +27,11 @@ public class PhotoDisplayer : MonoBehaviour
         set
         {
             _photoType = value;
-            DisplayPhoto();
+            if (currentMediaItem != null)
+            {
+                if (currentMediaItem.IsPhoto) DisplayPhoto();
+                else if (currentMediaItem.IsVideo) DisplayVideo();
+            }
         }
     }
 
@@ -46,7 +50,7 @@ public class PhotoDisplayer : MonoBehaviour
 
         videoPlayer.Pause();
         videoPlayer.url = "";
-
+        Debug.Log(PhotoType);
         switch (PhotoType)
         {
             case Utility.PhotoTypes.RectangularMono:

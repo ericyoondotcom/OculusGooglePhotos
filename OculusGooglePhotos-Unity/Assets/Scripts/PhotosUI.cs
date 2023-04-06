@@ -187,7 +187,7 @@ public class PhotosUI : MonoBehaviour
         {
             if (mediaItem.downloadedImageTexture == null)
             {
-                StartCoroutine(playerUIController.photosDataManager.DownloadPhotoContent(mediaItem, AfterPhotoDownloaded));
+                StartCoroutine(playerUIController.photosDataManager.DownloadPhotoContent(mediaItem, AfterPhotoDownloaded, OnDownloadProgressChange));
             }
             else
             {
@@ -198,7 +198,7 @@ public class PhotosUI : MonoBehaviour
         {
             if (mediaItem.downloadedVideoFilePath == null)
             {
-                StartCoroutine(playerUIController.photosDataManager.DownloadVideoContent(mediaItem, AfterVideoDownloaded));
+                StartCoroutine(playerUIController.photosDataManager.DownloadVideoContent(mediaItem, AfterVideoDownloaded, OnDownloadProgressChange));
             }
             else
             {
@@ -215,6 +215,11 @@ public class PhotosUI : MonoBehaviour
             selectedEntry.SetSelected(false);
             selectedEntry = null;
         }
+    }
+
+    void OnDownloadProgressChange(float progress)
+    {
+        playerUIController.DisplayLoader(progress);
     }
 
     void AfterPhotoDownloaded(MediaItem mediaItem)

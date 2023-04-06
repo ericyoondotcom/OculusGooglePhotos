@@ -9,6 +9,7 @@ public class PlayerUIController : MonoBehaviour
     
     public PhotosDataManager photosDataManager;
     public GameObject loader;
+    public ProgressBar loaderProgressBar;
     public AlbumUI albumUI;
     public PhotosUI photosUI;
 
@@ -25,9 +26,14 @@ public class PlayerUIController : MonoBehaviour
         LoadAlbums();
     }
 
-    public void DisplayLoader()
+    public void DisplayLoader(float progress = 0)
     {
         loader.SetActive(true);
+        if (loaderProgressBar != null)
+        {
+            loaderProgressBar.gameObject.SetActive(progress > 0);
+            loaderProgressBar.SetProgress(progress);
+        }
     }
     public void HideLoader()
     {

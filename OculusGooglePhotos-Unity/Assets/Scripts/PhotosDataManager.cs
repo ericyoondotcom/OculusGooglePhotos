@@ -208,7 +208,7 @@ public class PhotosDataManager : MonoBehaviour
         }
     }
 
-    public IEnumerator DownloadPhotoContent(MediaItem mediaItem, Action<MediaItem> callback)
+    public IEnumerator DownloadPhotoContent(MediaItem mediaItem, Action<MediaItem> callback, Action<float> onProgressChange)
     {
         if (!mediaItem.IsPhoto)
         {
@@ -220,7 +220,14 @@ public class PhotosDataManager : MonoBehaviour
 
         using (UnityWebRequest req = UnityWebRequestTexture.GetTexture(url))
         {
-            yield return req.SendWebRequest();
+            var operation = req.SendWebRequest();
+
+            while (!operation.isDone)
+            {
+                onProgressChange(operation.progress);
+                yield return new WaitForEndOfFrame();
+            }
+
             if (req.result != UnityWebRequest.Result.Success)
             {
                 Debug.LogError("Download image returned error: " + req.result);
@@ -236,7 +243,7 @@ public class PhotosDataManager : MonoBehaviour
         callback(mediaItem);
     }
 
-    public IEnumerator DownloadVideoContent(MediaItem mediaItem, Action<MediaItem> callback)
+    public IEnumerator DownloadVideoContent(MediaItem mediaItem, Action<MediaItem> callback, Action<float> onProgressChange)
     {
         if (!mediaItem.IsVideo)
         {
@@ -249,7 +256,14 @@ public class PhotosDataManager : MonoBehaviour
 
         using (UnityWebRequest req = UnityWebRequest.Get(url))
         {
-            yield return req.SendWebRequest();
+            var operation = req.SendWebRequest();
+
+            while (!operation.isDone)
+            {
+                onProgressChange(operation.progress);
+                yield return new WaitForEndOfFrame();
+            }
+
             if (req.result != UnityWebRequest.Result.Success)
             {
                 Debug.LogError("Download video returned error: " + req.result);
@@ -261,7 +275,6 @@ public class PhotosDataManager : MonoBehaviour
                 uuid,
                 mediaItem.OriginalFilenameExtension
             );
-            Debug.Log("Check " + savePath);
             var writeTask = System.IO.File.WriteAllBytesAsync(savePath, req.downloadHandler.data);
             yield return new WaitUntil(() => writeTask.IsCompleted);
             mediaItem.OnVideoDownloaded(savePath);
