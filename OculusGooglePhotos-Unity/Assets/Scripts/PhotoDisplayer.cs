@@ -107,9 +107,13 @@ public class PhotoDisplayer : MonoBehaviour
             rtWidth = rtHeight * 2;
         }
 
-        RenderTexture renderTexture = new RenderTexture(currentMediaItem.width, currentMediaItem.height, UnityEngine.Experimental.Rendering.GraphicsFormat.R8G8B8A8_SRGB, UnityEngine.Experimental.Rendering.GraphicsFormat.D32_SFloat_S8_UInt, 0);
+        RenderTexture renderTexture = new RenderTexture(currentMediaItem.width, currentMediaItem.height, UnityEngine.Experimental.Rendering.GraphicsFormat.R8G8B8A8_SRGB, UnityEngine.Experimental.Rendering.GraphicsFormat.D24_UNorm_S8_UInt, 0);
 
+#if UNITY_EDITOR // SEE https://forum.unity.com/threads/error-videoplayer-on-android.742451/
         videoPlayer.url = "file://" + currentMediaItem.downloadedVideoFilePath;
+#else
+        videoPlayer.url = currentMediaItem.downloadedVideoFilePath;
+#endif
         videoPlayer.targetTexture = renderTexture;
         videoPlayer.Play();
 
