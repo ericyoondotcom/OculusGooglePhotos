@@ -1,15 +1,12 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using System.Web;
-using UnityEditor.VersionControl;
 using UnityEngine;
 using UnityEngine.Networking;
-using XmpCore;
 using MetadataExtractor;
 using MetadataExtractor.Formats.Xmp;
 using System.Linq;
@@ -246,6 +243,27 @@ public class PhotosDataManager : MonoBehaviour
         callback(mediaItem);
     }
 
+    public IEnumerator DownloadThumbnail(MediaItem mediaItem, Action<MediaItem> callback)
+    {
+        string url = mediaItem.baseUrl + "=w500-h500-c-d";
+
+        using (UnityWebRequest req = UnityWebRequestTexture.GetTexture(url))
+        {
+            yield return req.SendWebRequest();
+            if (req.result != UnityWebRequest.Result.Success)
+            {
+                Debug.LogError("Download image thumbnail returned error: " + req.result);
+                yield break;
+            }
+            var texture = DownloadHandlerTexture.GetContent(req);
+            byte[] bytes = req.downloadHandler.data;
+            Sprite sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.zero);
+            mediaItem.OnPhotoThumbnailDownloaded(sprite, bytes);
+            RetrieveXMPData(mediaItem); // Turns out, if you pass the -d flag along with w, h, and c, it still downloads metadata!
+            callback(mediaItem);
+        }
+    }
+
     public IEnumerator DownloadVideoContent(MediaItem mediaItem, Action<MediaItem> callback, Action<float> onProgressChange)
     {
         if (!mediaItem.IsVideo)
@@ -299,7 +317,7 @@ public class PhotosDataManager : MonoBehaviour
         }
         if (stream == null)
         {
-            Debug.LogError("Stream was null, could not read XMP");
+            // Debug.LogError("Stream was null, could not read XMP");
             return;
         }
 
@@ -308,7 +326,7 @@ public class PhotosDataManager : MonoBehaviour
 
         if (xmpDir?.XmpMeta == null)
         {
-            Debug.LogWarning("XMP metadata is null, skipping");
+            // Debug.LogWarning("XMP metadata is null, skipping");
             return;
         }
         var properties = xmpDir.XmpMeta.Properties;

@@ -16,18 +16,18 @@ public class PhotoUIEntry : MonoBehaviour
         selectedUI.SetActive(isSelected);
     }
 
-    public IEnumerator SetImageSprite(string url)
+    public IEnumerator DownloadThumbnail(MediaItem mediaItem, PhotosDataManager dataManager)
     {
-        using (UnityWebRequest req = UnityWebRequestTexture.GetTexture(url))
+        if(mediaItem.downloadedThumbnailSprite != null)
         {
-            yield return req.SendWebRequest();
-            if (req.result != UnityWebRequest.Result.Success)
-            {
-                Debug.LogError("Image fetch returned error: " + req.result);
-                yield break;
-            }
-            var texture = DownloadHandlerTexture.GetContent(req);
-            image.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.zero);
+            image.sprite = mediaItem.downloadedThumbnailSprite;
+            yield break;
         }
+        yield return dataManager.DownloadThumbnail(mediaItem, AfterThumbnailDownloaded);
+    }
+
+    public void AfterThumbnailDownloaded(MediaItem mediaItem)
+    {
+        image.sprite = mediaItem.downloadedThumbnailSprite;
     }
 }

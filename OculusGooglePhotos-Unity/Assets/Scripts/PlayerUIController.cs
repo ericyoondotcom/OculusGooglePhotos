@@ -53,6 +53,16 @@ public class PlayerUIController : MonoBehaviour
         albumUI.DisplayAlbums(photosDataManager.data);
         photosUI.photoDisplayer.StopDisplaying();
         photosUI.ClearSelection();
+
+        // We need to clear the filter on the photos UI every time the album is switched.
+        // Metadata is only obtained once the thumbnail is downloaded, so we won't know
+        // whether photos are spherical until we download the thumbnail, which *is* done
+        // by displaying all photos. Otherwise we would have to force the user to wait for
+        // every photo thumbnail to be downloaded instead of allowing them to trickle in,
+        // which is a bad user experience.
+        // TODO This should be fixed at a later date, because a side effect of this is that
+        // when you LOAD MORE, they arent included in the filter!
+        photosUI.OnFilterModeSelect(PhotosUI.FilterMode.Unfiltered);
     }
 
     public void DisplayPhotosFromLibrary()

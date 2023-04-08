@@ -49,6 +49,7 @@ public class MediaItem {
     public string projection;
 
     public Texture2D downloadedImageTexture;
+    public Sprite downloadedThumbnailSprite;
     public byte[] imageBytes;
     public string downloadedVideoFilePath;
 
@@ -67,6 +68,12 @@ public class MediaItem {
     public void OnPhotoDownloaded(Texture2D downloadedImageTexture, byte[] imageBytes)
     {
         this.downloadedImageTexture = downloadedImageTexture;
+        this.imageBytes = imageBytes;
+    }
+
+    public void OnPhotoThumbnailDownloaded(Sprite downloadedThumbnailSprite, byte[] imageBytes)
+    {
+        this.downloadedThumbnailSprite = downloadedThumbnailSprite;
         this.imageBytes = imageBytes;
     }
 

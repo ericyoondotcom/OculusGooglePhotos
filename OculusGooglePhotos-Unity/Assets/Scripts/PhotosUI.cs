@@ -40,6 +40,7 @@ public class PhotosUI : MonoBehaviour
     float entryDimension;
     bool isShowingLibrary = false;
     string displayedAlbumId = null;
+    FilterMode displayedFilterMode = FilterMode.Unfiltered;
     List<string> instantiatedPhotoKeys = new List<string>();
     Dictionary<string, PhotoUIEntry> instantiatedEntries = new Dictionary<string, PhotoUIEntry>();
     PhotoUIEntry selectedEntry;
@@ -52,6 +53,12 @@ public class PhotosUI : MonoBehaviour
         formatModal.SetActive(false);
         filterModal.SetActive(false);
         OnFormatSelect(Utility.PhotoTypes.RectangularMono);
+    }
+
+    public void RefreshDisplay()
+    {
+        if (isShowingLibrary) DisplayLibrary(playerUIController.photosDataManager.data);
+        else if (displayedAlbumId != null) DisplayAlbum(playerUIController.photosDataManager.data, displayedAlbumId);
     }
 
     public void DisplayLibrary(PhotosDataStore data)
@@ -84,7 +91,54 @@ public class PhotosUI : MonoBehaviour
         yield return new WaitForEndOfFrame(); // Need to wait for canvas update to get size
         entryDimension = scrollViewContent.rect.width / numColumnsPerRow;
 
-        int numRows = (int)Mathf.Ceil((float)mediaItems.Count / numColumnsPerRow);
+        if(filterMode != displayedFilterMode)
+        {
+            displayedFilterMode = filterMode;
+            DestroyAllEntries();
+        }
+
+        int pos = 0;
+        for (int i = 0; i < mediaItems.Count; i++)
+        {
+            var kvp = mediaItems.ElementAt(i);
+            MediaItem mediaItem = kvp.Value;
+
+            if (!ShouldBeShown(mediaItem)) continue;
+            
+            if (!instantiatedPhotoKeys.Contains(kvp.Key))
+            {
+                instantiatedPhotoKeys.Add(kvp.Key);
+
+                int row = pos / numColumnsPerRow;
+                int col = pos % numColumnsPerRow;
+
+                GameObject newEntry = Instantiate(photoEntryPrefab, scrollViewContent);
+                RectTransform rt = newEntry.GetComponent<RectTransform>();
+
+                rt.SetInsetAndSizeFromParentEdge(
+                    RectTransform.Edge.Top,
+                    entryDimension * row,
+                    entryDimension
+                );
+                rt.SetInsetAndSizeFromParentEdge(
+                    RectTransform.Edge.Left,
+                    entryDimension * col,
+                    entryDimension
+                );
+
+                PhotoUIEntry photoUIEntry = newEntry.GetComponent<PhotoUIEntry>();
+                instantiatedEntries[kvp.Key] = photoUIEntry;
+                string imageUrl = null;
+                if (mediaItem.IsPhoto) imageUrl = mediaItem.baseUrl + "=w500-h500-c";
+                else if (mediaItem.IsVideo) imageUrl = mediaItem.baseUrl + "=w500-h500-c";
+                if (imageUrl != null) StartCoroutine(photoUIEntry.DownloadThumbnail(mediaItem, playerUIController.photosDataManager));
+                photoUIEntry.button.onClick.AddListener(() => OnSelectPhoto(mediaItem));
+            }
+
+            pos++;
+        }
+
+        int numRows = (int)Mathf.Ceil((float)pos / numColumnsPerRow);
         scrollViewContent.sizeDelta = new Vector2(
             0,
             entryDimension * numRows +
@@ -97,51 +151,27 @@ public class PhotosUI : MonoBehaviour
             loadMoreButton.rect.height
         );
         loadMoreButton.gameObject.SetActive(hasMoreMediaItemsToLoad);
-
-        for (int i = 0; i < mediaItems.Count; i++)
-        {
-            var kvp = mediaItems.ElementAt(i);
-            MediaItem mediaItem = kvp.Value;
-            if (instantiatedPhotoKeys.Contains(kvp.Key)) continue;
-            instantiatedPhotoKeys.Add(kvp.Key);
-
-            int row = i / numColumnsPerRow;
-            int col = i % numColumnsPerRow;
-
-            GameObject newEntry = Instantiate(photoEntryPrefab, scrollViewContent);
-            RectTransform rt = newEntry.GetComponent<RectTransform>();
-
-            rt.SetInsetAndSizeFromParentEdge(
-                RectTransform.Edge.Top,
-                entryDimension * row,
-                entryDimension
-            );
-            rt.SetInsetAndSizeFromParentEdge(
-                RectTransform.Edge.Left,
-                entryDimension * col,
-                entryDimension
-            );
-
-            PhotoUIEntry photoUIEntry = newEntry.GetComponent<PhotoUIEntry>();
-            instantiatedEntries[kvp.Key] = photoUIEntry;
-            string imageUrl = null;
-            if (mediaItem.IsPhoto) imageUrl = mediaItem.baseUrl + "=w500-h500-c";
-            else if (mediaItem.IsVideo) imageUrl = mediaItem.baseUrl + "=w500-h500-c";
-            if(imageUrl != null) StartCoroutine(photoUIEntry.SetImageSprite(imageUrl));
-            photoUIEntry.button.onClick.AddListener(() => OnSelectPhoto(mediaItem));
-        }
     }
 
-    void Refresh()
+    public bool ShouldBeShown(MediaItem mediaItem)
     {
-        if (isShowingLibrary)
+        if (filterMode == FilterMode.Unfiltered)
         {
-            playerUIController.DisplayPhotosFromLibrary();
+            return true;
         }
-        else
+        else if (filterMode == FilterMode.SphericalPhotosOnly)
         {
-            playerUIController.DisplayPhotosFromAlbum(displayedAlbumId);
+            return mediaItem.projection == "equirectangular";
         }
+        else if (filterMode == FilterMode.StereoPhotosOnly)
+        {
+            return true;
+        }
+        else if(filterMode == FilterMode.VideosOnly)
+        {
+            return mediaItem.IsVideo;
+        }
+        return false;
     }
 
     public void DestroyAllEntries()
@@ -291,7 +321,7 @@ public class PhotosUI : MonoBehaviour
     {
         filterModal.SetActive(false);
         this.filterMode = filterMode;
-        Refresh();
+        RefreshDisplay();
     }
 
     public void OnFormatButtonClick()
