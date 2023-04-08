@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
 using System.Threading.Tasks;
+using Oculus.Interaction.PoseDetection;
 
 public class PhotosUI : MonoBehaviour
 {
@@ -22,6 +23,7 @@ public class PhotosUI : MonoBehaviour
     public Sprite iconSphericalMono;
     public Sprite iconSphericalStereo;
 
+    public GameObject photosUI;
     public Image formatButtonIcon;
     public GameObject formatModal;
     public GameObject filterModal;
@@ -42,6 +44,8 @@ public class PhotosUI : MonoBehaviour
     Dictionary<string, PhotoUIEntry> instantiatedEntries = new Dictionary<string, PhotoUIEntry>();
     PhotoUIEntry selectedEntry;
     bool displayVideoOnNextFrame = false;
+
+    public bool PhotoHasBeenSelected => selectedEntry != null;
 
     private void Start()
     {
@@ -166,7 +170,6 @@ public class PhotosUI : MonoBehaviour
 
     void OnSelectPhoto(MediaItem mediaItem)
     {
-        playerUIController.DisplayLoader();
         if (!instantiatedEntries.ContainsKey(mediaItem.id)) return;
         PhotoUIEntry entry = instantiatedEntries[mediaItem.id];
         if (selectedEntry != null)
@@ -183,8 +186,13 @@ public class PhotosUI : MonoBehaviour
             selectedEntry = entry;
         }
 
-        if (mediaItem.IsPhoto)
+        if(selectedEntry == null)
         {
+            photoDisplayer.StopDisplaying();
+        }
+        else if (mediaItem.IsPhoto)
+        {
+            playerUIController.DisplayLoader();
             if (mediaItem.downloadedImageTexture == null)
             {
                 StartCoroutine(playerUIController.photosDataManager.DownloadPhotoContent(mediaItem, AfterPhotoDownloaded, OnDownloadProgressChange));
@@ -196,6 +204,7 @@ public class PhotosUI : MonoBehaviour
         }
         else if (mediaItem.IsVideo)
         {
+            playerUIController.DisplayLoader();
             if (mediaItem.downloadedVideoFilePath == null)
             {
                 StartCoroutine(playerUIController.photosDataManager.DownloadVideoContent(mediaItem, AfterVideoDownloaded, OnDownloadProgressChange));

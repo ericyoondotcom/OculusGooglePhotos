@@ -154,17 +154,18 @@ public class AuthenticationManager : MonoBehaviour
         return accessToken;
     }
 
+    public void SignOut()
+    {
+        PlayerPrefs.DeleteAll();
+        OnAuthFail();
+    }
+
     private void Update()
     {
         if (loadSceneOnNextUpdate != null)
         {
             SceneManager.LoadSceneAsync(loadSceneOnNextUpdate);
             loadSceneOnNextUpdate = null;
-        }
-        if (Input.GetKeyDown(KeyCode.F1))
-        {
-            PlayerPrefs.DeleteAll();
-            OnAuthFail();
         }
     }
 }

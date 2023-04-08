@@ -44,6 +44,7 @@ WIP
 - Follow [this guide](https://developer.oculus.com/documentation/unity/unity-gs-overview/) to get your Oculus Quest set up with Unity.
 - Copy `OculusGooglePhotos-Unity/Assets/Scripts/Constants.template` to `Constants.cs`
     - Paste in your Cloud Functions base URL (such as `https://us-central1-foobar.cloudfunctions.net`)
+- If you want to be able to test the UI without using your Quest, go into the "Player" scene, click on `UIHelpers > EventSystem` in the heirarchy, and enable `Input System UI Input Module`. You'll have to re-disable the component when you create a build or test on your Quest
 
 ## Technical details
 

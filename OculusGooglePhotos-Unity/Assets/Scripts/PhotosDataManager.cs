@@ -317,7 +317,6 @@ public class PhotosDataManager : MonoBehaviour
 
         foreach (var property in properties)
         {
-            Debug.Log($"Path={property.Path} Namespace={property.Namespace} Value={property.Value}");
             if (property.Path == null || property.Value == null) continue;
             if (property.Path.Contains("ProjectionType"))
             {

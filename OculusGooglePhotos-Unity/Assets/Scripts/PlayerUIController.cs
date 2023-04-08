@@ -6,7 +6,8 @@ using UnityEngine;
 public class PlayerUIController : MonoBehaviour
 {
     public const string ALL_PHOTOS_TEXT = "All photos";
-    
+
+    public GameObject content;
     public PhotosDataManager photosDataManager;
     public GameObject loader;
     public ProgressBar loaderProgressBar;
@@ -16,13 +17,15 @@ public class PlayerUIController : MonoBehaviour
     bool displayAlbumsOnNextFrame;
     bool displayLibraryOnNextFrame;
     string albumToDisplayOnNextFrame;
+    bool isDisplayingAlbums;
+    bool isDisplayingPhotos;
     
     void Start()
     {
         albumUI.playerUIController = this;
         photosUI.playerUIController = this;
-        albumUI.gameObject.SetActive(false);
-        photosUI.gameObject.SetActive(false);
+        albumUI.albumUI.SetActive(false);
+        photosUI.photosUI.SetActive(false);
         LoadAlbums();
     }
 
@@ -43,8 +46,10 @@ public class PlayerUIController : MonoBehaviour
     public void DisplayAlbumUI()
     {
         loader.SetActive(false);
-        albumUI.gameObject.SetActive(true);
-        photosUI.gameObject.SetActive(false);
+        albumUI.albumUI.SetActive(true);
+        photosUI.photosUI.SetActive(false);
+        isDisplayingAlbums = true;
+        isDisplayingPhotos = false;
         albumUI.DisplayAlbums(photosDataManager.data);
         photosUI.photoDisplayer.StopDisplaying();
         photosUI.ClearSelection();
@@ -53,16 +58,20 @@ public class PlayerUIController : MonoBehaviour
     public void DisplayPhotosFromLibrary()
     {
         loader.SetActive(false);
-        albumUI.gameObject.SetActive(false);
-        photosUI.gameObject.SetActive(true);
+        albumUI.albumUI.SetActive(false);
+        photosUI.photosUI.SetActive(true);
+        isDisplayingAlbums = false;
+        isDisplayingPhotos = true;
         photosUI.DisplayLibrary(photosDataManager.data);
     }
 
     public void DisplayPhotosFromAlbum(string albumKey)
     {
         loader.SetActive(false);
-        albumUI.gameObject.SetActive(false);
-        photosUI.gameObject.SetActive(true);
+        albumUI.albumUI.SetActive(false);
+        photosUI.photosUI.SetActive(true);
+        isDisplayingAlbums = false;
+        isDisplayingPhotos = true;
         photosUI.DisplayAlbum(photosDataManager.data, albumKey);
     }
 
@@ -117,6 +126,11 @@ public class PlayerUIController : MonoBehaviour
         });
     }
 
+    public void SignOut()
+    {
+        AuthenticationManager.Instance.SignOut();
+    }
+
     void Update()
     {
         if (displayAlbumsOnNextFrame)
@@ -133,6 +147,16 @@ public class PlayerUIController : MonoBehaviour
         {
             DisplayPhotosFromAlbum(albumToDisplayOnNextFrame);
             albumToDisplayOnNextFrame = null;
+        }
+        if (OVRInput.GetDown(OVRInput.Button.Start) || Input.GetKeyDown(KeyCode.Escape))
+        {
+            if(content.activeSelf && isDisplayingPhotos && photosUI.photoDisplayer.currentMediaItem != null)
+            {
+                content.SetActive(false);
+            } else
+            {
+                content.SetActive(true);
+            }
         }
     }
 }

@@ -7,6 +7,7 @@ public class AlbumUI : MonoBehaviour
 {
     public float entryGap;
 
+    public GameObject albumUI;
     public RectTransform scrollViewContent;
     public RectTransform loadMoreButton;
     public GameObject albumEntryPrefab;

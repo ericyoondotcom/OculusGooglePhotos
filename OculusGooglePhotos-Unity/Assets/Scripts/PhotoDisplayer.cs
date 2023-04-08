@@ -153,8 +153,10 @@ public class PhotoDisplayer : MonoBehaviour
         }
     }
 
+
     public void StopDisplaying()
     {
+        currentMediaItem = null;
         videoPlayer.Pause();
         videoPlayer.url = "";
         RenderSettings.skybox = defaultSkyboxMaterial;
