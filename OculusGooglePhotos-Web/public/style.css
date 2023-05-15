@@ -89,16 +89,21 @@ h2 {
 	align-items: center;
 	gap: 15px;
 	font-size: 15px;
-	font-weight: bold;
-	background-color: var(--accent-color);
-	color: #FFFFFF;
-	border-radius: 10px;
-	padding: 15px 20px;
-	border: none;
+	background-color: #FFFFFF;
+	color: #777777;
+	border-radius: 3px;
+	padding: 10px 15px;
+	border: #AAAAAA 1px solid;
+	font-family: "Roboto", sans-serif;
+	font-weight: 400;
 	cursor: pointer;
+	transition: opacity 0.3s;
 }
 #sign-in-button:hover {
 	opacity: 0.8;
+}
+#sign-in-button img {
+	height: 20px;
 }
 #sign-in-button p {
 	margin: 0;
