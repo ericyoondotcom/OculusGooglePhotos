@@ -1,5 +1,5 @@
 # OculusGooglePhotos
-Google Photos viewer for Oculus Quest.
+Google Photos viewer for Meta Quest.
 
 ## Install the app
 WIP
@@ -41,7 +41,7 @@ WIP
     - If you plan on using the emulator, you need to set up your admin credentials locally. See [docs](https://firebase.google.com/docs/functions/local-emulator#set_up_admin_credentials_optional). Download your key as `serviceAccountKey.json` and place it in the `functions` directory.
 
 ### Get Unity running
-- Follow [this guide](https://developer.oculus.com/documentation/unity/unity-gs-overview/) to get your Oculus Quest set up with Unity.
+- Follow [this guide](https://developer.oculus.com/documentation/unity/unity-gs-overview/) to get your Meta Quest set up with Unity.
 - Copy `OculusGooglePhotos-Unity/Assets/Scripts/Constants.template` to `Constants.cs`
     - Paste in your Cloud Functions base URL (such as `https://us-central1-foobar.cloudfunctions.net`)
 - If you want to be able to test the UI without using your Quest, go into the "Player" scene, click on `UIHelpers > EventSystem` in the heirarchy, and enable `Input System UI Input Module`. You'll have to re-disable the component when you create a build or test on your Quest

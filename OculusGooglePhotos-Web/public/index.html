@@ -22,14 +22,14 @@
 <body>
 	<img id="logo" src="resources/logo.png" alt="Logo">
 	<h1 id="title">VR Gallery for Google Photos</h1>
-	<p id="subtitle">The easiest way to view your 360° media from Google Photos on your Oculus Quest.
+	<p id="subtitle">The easiest way to view your 360° media from Google Photos on your Meta Quest.
 	<div id="link-box">
 		<div id="step-0">
 			<h2>Have a link code?</h2>
-			<div id="code-entry-container">
+			<form id="code-entry-container" action="javascript:void(0);">
 				<input type="text" id="code-entry" placeholder="123-ABC-456">
-				<button onclick="onCodeSubmit()"><i class="fa-solid fa-arrow-right"></i></button>
-			</div>
+				<button type="submit" onclick="onCodeSubmit()"><i class="fa-solid fa-arrow-right"></i></button>
+			</form>
 		</div>
 		<div id="step-1">
 			<h2>Authorize VR Gallery to view your Google Photos</h2>
