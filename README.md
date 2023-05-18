@@ -1,8 +1,22 @@
 # OculusGooglePhotos
 Google Photos viewer for Meta Quest.
 
+- View flat and 360° photos and videos from Google Photos
+- Scroll through individual albums or your entire library
+- Your photos data never leaves your device
+- 100% open source
+
 ## Install the app
-WIP
+### Install from SideQuest
+The app will become available on SideQuest soon! For now, install the APK manually.
+
+### Install the APK using ADB
+1. Make sure you have the `adb` command line tool installed. [(Installation guide)](https://www.xda-developers.com/install-adb-windows-macos-linux/)
+2. Make sure your Meta Quest is in developer mode. [(Guide)](https://learn.adafruit.com/sideloading-on-oculus-quest/enable-developer-mode)
+3. Download the latest APK from the [Releases tab](https://github.com/ericyoondotcom/OculusGooglePhotos/releases).
+4. Plug in your Quest to your computer. Accept the prompt on your Quest.
+5. In a new shell, type `adb devices` and verify your Quest is listed. Type `adb install path/to/file.apk`.
+6. Your app is installed under Unknown Sources in your Quest. 
 
 ## Get started with development
 ### Install tools
