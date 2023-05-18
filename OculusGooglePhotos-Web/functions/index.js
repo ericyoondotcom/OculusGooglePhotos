@@ -37,7 +37,8 @@ exports.onAuthorizationCodeObtained = functions.https.onCall(async (data, contex
     }
     
     await db.ref("authResults/" + linkCode).set({
-        refreshToken: json.refresh_token
+        refreshToken: json.refresh_token,
+        createdAt: admin.database.ServerValue.TIMESTAMP
     });
     return {success: true};
 });
@@ -60,5 +61,15 @@ exports.pollForRefreshToken = functions.https.onRequest(async (req, res) => {
     if(!val) {
         return res.status(404).end("No auth result found");
     }
+    if(!val.refreshToken || !val.createdAt) {
+        return res.status(500).end("Malformed data saved in database");
+    }
+    // Delete codes older than 5 minutes
+    if(val.createdAt < Date.now() - 5 * 60 * 1000) {
+        await snap.ref.remove();
+        return res.status(410).end("Auth result expired.");
+    }
+
+    await snap.ref.remove(); // Delete the code once it's used
     return res.status(200).end(snap.val().refreshToken);
 });
