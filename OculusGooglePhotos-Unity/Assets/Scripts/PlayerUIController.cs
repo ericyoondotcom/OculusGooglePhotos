@@ -11,6 +11,7 @@ public class PlayerUIController : MonoBehaviour
     public PhotosDataManager photosDataManager;
     public GameObject loader;
     public ProgressBar loaderProgressBar;
+    public GameObject hideUIHintText;
     public AlbumUI albumUI;
     public PhotosUI photosUI;
 
@@ -26,6 +27,7 @@ public class PlayerUIController : MonoBehaviour
         photosUI.playerUIController = this;
         albumUI.albumUI.SetActive(false);
         photosUI.photosUI.SetActive(false);
+        hideUIHintText.SetActive(false);
         LoadAlbums();
     }
 
@@ -63,6 +65,7 @@ public class PlayerUIController : MonoBehaviour
         // TODO This should be fixed at a later date, because a side effect of this is that
         // when you LOAD MORE, they arent included in the filter!
         photosUI.OnFilterModeSelect(PhotosUI.FilterMode.Unfiltered);
+        photosUI.photoDisplayer.onCurrentMediaItemChange.AddListener(OnCurrentMediaItemChanged);
     }
 
     public void DisplayPhotosFromLibrary()
@@ -136,6 +139,11 @@ public class PlayerUIController : MonoBehaviour
         });
     }
 
+    public void OnCurrentMediaItemChanged()
+    {
+        hideUIHintText.SetActive(isDisplayingPhotos && photosUI.photoDisplayer.CurrentMediaItem != null);
+    }
+
     public void SignOut()
     {
         AuthenticationManager.Instance.SignOut();
@@ -160,7 +168,7 @@ public class PlayerUIController : MonoBehaviour
         }
         if (OVRInput.GetDown(OVRInput.Button.Start) || Input.GetKeyDown(KeyCode.Escape))
         {
-            if(content.activeSelf && isDisplayingPhotos && photosUI.photoDisplayer.currentMediaItem != null)
+            if(content.activeSelf && isDisplayingPhotos && photosUI.photoDisplayer.CurrentMediaItem != null)
             {
                 content.SetActive(false);
             } else

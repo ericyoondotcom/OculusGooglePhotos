@@ -241,7 +241,7 @@ public class PhotosUI : MonoBehaviour
             }
             else
             {
-                photoDisplayer.currentMediaItem = mediaItem;
+                photoDisplayer.CurrentMediaItem = mediaItem;
                 displayVideoOnNextFrame = true;
             }
         }
@@ -263,19 +263,19 @@ public class PhotosUI : MonoBehaviour
 
     void AfterPhotoDownloaded(MediaItem mediaItem)
     {
-        photoDisplayer.currentMediaItem = null;
+        photoDisplayer.CurrentMediaItem = null;
         SwitchPhotoTypeBasedOnMetadata(mediaItem);
         playerUIController.HideLoader();
-        photoDisplayer.currentMediaItem = mediaItem;
+        photoDisplayer.CurrentMediaItem = mediaItem;
         photoDisplayer.DisplayPhoto();
     }
 
     void AfterVideoDownloaded(MediaItem mediaItem)
     {
-        photoDisplayer.currentMediaItem = null;
+        photoDisplayer.CurrentMediaItem = null;
         SwitchPhotoTypeBasedOnMetadata(mediaItem);
         playerUIController.HideLoader();
-        photoDisplayer.currentMediaItem = mediaItem;
+        photoDisplayer.CurrentMediaItem = mediaItem;
         photoDisplayer.DisplayVideo();
     }
 
