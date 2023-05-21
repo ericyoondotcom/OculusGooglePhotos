@@ -32,6 +32,7 @@ public class PhotosUI : MonoBehaviour
     public TextMeshProUGUI albumTitle;
     public GameObject photoEntryPrefab;
     public PhotoDisplayer photoDisplayer;
+    public GameObject videoFormatSelectHint;
     [System.NonSerialized]
     public PlayerUIController playerUIController;
     [System.NonSerialized]
@@ -52,6 +53,7 @@ public class PhotosUI : MonoBehaviour
     {
         formatModal.SetActive(false);
         filterModal.SetActive(false);
+        videoFormatSelectHint.SetActive(false);
         OnFormatSelect(Utility.PhotoTypes.RectangularMono);
     }
 
@@ -201,6 +203,7 @@ public class PhotosUI : MonoBehaviour
     void OnSelectPhoto(MediaItem mediaItem)
     {
         if (!instantiatedEntries.ContainsKey(mediaItem.id)) return;
+        videoFormatSelectHint.SetActive(false);
         PhotoUIEntry entry = instantiatedEntries[mediaItem.id];
         if (selectedEntry != null)
         {
@@ -243,12 +246,16 @@ public class PhotosUI : MonoBehaviour
             {
                 photoDisplayer.CurrentMediaItem = mediaItem;
                 displayVideoOnNextFrame = true;
+                if (photoDisplayer.PhotoType == Utility.PhotoTypes.RectangularMono)
+                    videoFormatSelectHint.SetActive(true);
             }
         }
     }
 
     public void ClearSelection()
     {
+        videoFormatSelectHint.SetActive(false);
+
         if (selectedEntry != null)
         {
             selectedEntry.SetSelected(false);
@@ -273,10 +280,12 @@ public class PhotosUI : MonoBehaviour
     void AfterVideoDownloaded(MediaItem mediaItem)
     {
         photoDisplayer.CurrentMediaItem = null;
-        SwitchPhotoTypeBasedOnMetadata(mediaItem);
+        // SwitchPhotoTypeBasedOnMetadata(mediaItem);
         playerUIController.HideLoader();
         photoDisplayer.CurrentMediaItem = mediaItem;
         photoDisplayer.DisplayVideo();
+        if(photoDisplayer.PhotoType == Utility.PhotoTypes.RectangularMono)
+            videoFormatSelectHint.SetActive(true);
     }
 
     void SwitchPhotoTypeBasedOnMetadata(MediaItem mediaItem)
@@ -328,6 +337,7 @@ public class PhotosUI : MonoBehaviour
     {
         formatModal.SetActive(!formatModal.activeSelf);
         filterModal.SetActive(false);
+        videoFormatSelectHint.SetActive(false);
     }
 
     public void OnFormatSelect(string type)
