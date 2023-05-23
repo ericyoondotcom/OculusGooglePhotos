@@ -12,6 +12,11 @@ body {
 	}
 }
 
+a.nostyle {
+	text-decoration: none;
+	color: inherit;
+}
+
 h1, h2, h3, h4, h5, h6 {
 	margin: 0;
 }
@@ -20,6 +25,34 @@ h1 {
 }
 h2 {
 	font-size: 3vh;
+}
+
+.image-button {
+	margin: 0 auto;
+	display: flex;
+	justify-content: left;
+	align-items: center;
+	gap: 15px;
+	font-size: 20px;
+	background-color: #FFFFFF;
+	color: #777777;
+	border-radius: 3px;
+	padding: 12px 17px;
+	border: #AAAAAA 1px solid;
+	border-radius: 5px;
+	font-family: "Lexend", sans-serif;
+	font-weight: 400;
+	cursor: pointer;
+	transition: opacity 0.3s;
+}
+.image-button:hover {
+	opacity: 0.8;
+}
+.image-button img {
+	height: 30px;
+}
+.image-button p {
+	margin: 0;
 }
 
 #logo {
@@ -31,19 +64,40 @@ h2 {
 #subtitle {
 	margin-top: 2vh;
 	font-size: 2vh;
+	margin-bottom: 4vh;
+}
+
+#download-links {
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	align-items: center;
+	gap: 30px;
 	margin-bottom: 7vh;
+}
+#sidequest-download-button {
+	height: 56px;
+	display: block;
+}
+#github-download-button {
+	color: #000000;
 }
 
 #link-box {
 	padding: 1.5vw;
 	border-radius: 15px;
 	text-align: center;
-	box-shadow: 0 0 20px 0 #000000AA;
+	box-shadow: 0 0 15px 0 #00000055;
 	margin-bottom: 7vh;
 }
 #link-box h2 {
 	font-size: 2.5vh;
 	margin-bottom: 2vh;
+}
+@media only screen and (max-width: 1000px) {
+	#link-box h2 {
+		font-size: 1.5vh;
+	}
 }
 #link-box > div {
 	/* start out the page with all steps hidden, they are controlled by JS */
@@ -83,31 +137,9 @@ h2 {
 }
 
 #sign-in-button {
-	margin: 0 auto;
-	display: flex;
-	justify-content: left;
-	align-items: center;
-	gap: 15px;
-	font-size: 15px;
-	background-color: #FFFFFF;
-	color: #777777;
-	border-radius: 3px;
-	padding: 10px 15px;
-	border: #AAAAAA 1px solid;
 	font-family: "Roboto", sans-serif;
-	font-weight: 400;
-	cursor: pointer;
-	transition: opacity 0.3s;
 }
-#sign-in-button:hover {
-	opacity: 0.8;
-}
-#sign-in-button img {
-	height: 20px;
-}
-#sign-in-button p {
-	margin: 0;
-}
+
 
 @keyframes spinner {
 	from { transform: rotate(0deg); }
@@ -141,6 +173,10 @@ h2 {
 #list-container > ul {
 	font-size: 2vh;
 	text-align: left;
+}
+#list-container a {
+	text-decoration: underline;
+	color: inherit;
 }
 
 #footer {

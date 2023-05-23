@@ -23,6 +23,17 @@
 	<img id="logo" src="resources/logo.png" alt="Logo">
 	<h1 id="title">VR Gallery for Google Photos</h1>
 	<p id="subtitle">The easiest way to view your 360° media from Google Photos on your Meta Quest.
+	<div id="download-links">
+		<a href="https://sidequestvr.com/app/16980/vr-gallery-for-google-photos" target="_blank" class="nostyle">
+			<img src="resources/sidequest-badge.png" alt="Get it on SideQuest" id="sidequest-download-button">
+		</a>
+		<a href="https://github.com/ericyoondotcom/OculusGooglePhotos/releases/latest" target="_blank" class="nostyle">
+			<button id="github-download-button" class="image-button">
+				<img src="resources/github-logo.png" alt="GitHub logo">
+				<p>Download from GitHub</p>
+			</button>
+		</a>
+	</div>
 	<div id="link-box">
 		<div id="step-0">
 			<h2>Have a link code?</h2>
@@ -33,7 +44,7 @@
 		</div>
 		<div id="step-1">
 			<h2>Authorize VR Gallery to view your Google Photos</h2>
-			<button id="sign-in-button" onclick="onSignInButtonClick()">
+			<button id="sign-in-button" class="image-button" onclick="onSignInButtonClick()">
 				<img src="resources/google-photos-logo.png" alt="Google Photos logo">
 				<p>Connect to Google Photos</p>
 			</button>

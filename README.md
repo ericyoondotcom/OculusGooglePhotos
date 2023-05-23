@@ -1,19 +1,24 @@
-# OculusGooglePhotos
+# VR Gallery for Google Photos
 Google Photos viewer for Meta Quest.
+
+[<img src="https://gallery.yoonicode.com/resources/sidequest-badge.png" alt="Get it on SideQuest" height="50px">](https://gallery.yoonicode.com/resources/sidequest-badge.png)
+
 
 - View flat and 360° photos and videos from Google Photos
 - Scroll through individual albums or your entire library
 - Your photos data never leaves your device
 - 100% open source
 
+Learn more at [gallery.yoonicode.com](https://gallery.yoonicode.com) • Made by [Eric Yoon](https://yoonicode.com) • Contributions welcome—see LICENSE
 ## Install the app
 ### Install from SideQuest
-The app will become available on SideQuest soon! For now, install the APK manually.
+1. Download the SideQuest desktop app and configure your Meta Quest by following [this guide](https://sidequestvr.com/setup-howto).
+2. [Get the latest app on SideQuest](https://sidequestvr.com/app/16980/vr-gallery-for-google-photos).
 
 ### Install the APK using ADB
 1. Make sure you have the `adb` command line tool installed. [(Installation guide)](https://www.xda-developers.com/install-adb-windows-macos-linux/)
 2. Make sure your Meta Quest is in developer mode. [(Guide)](https://learn.adafruit.com/sideloading-on-oculus-quest/enable-developer-mode)
-3. Download the latest APK from the [Releases tab](https://github.com/ericyoondotcom/OculusGooglePhotos/releases).
+3. Download the latest APK from the [Releases tab](https://github.com/ericyoondotcom/OculusGooglePhotos/releases/latest).
 4. Plug in your Quest to your computer. Accept the prompt on your Quest.
 5. In a new shell, type `adb devices` and verify your Quest is listed. Type `adb install path/to/file.apk`.
 6. Your app is installed under Unknown Sources in your Quest. 
