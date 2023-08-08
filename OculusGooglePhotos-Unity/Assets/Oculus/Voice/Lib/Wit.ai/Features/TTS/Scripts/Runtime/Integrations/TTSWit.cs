@@ -8,14 +8,16 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Serialization;
+using Meta.WitAi.Interfaces;
 using Meta.WitAi.Data.Configuration;
 using Meta.WitAi.TTS.Data;
 using Meta.WitAi.TTS.Events;
 using Meta.WitAi.TTS.Interfaces;
 using Meta.WitAi.Requests;
-using UnityEngine.Serialization;
 
 namespace Meta.WitAi.TTS.Integrations
 {
@@ -36,18 +38,24 @@ namespace Meta.WitAi.TTS.Integrations
         public string style = DEFAULT_STYLE;
         [Range(50, 200)]
         public int speed = 100;
-        [Range(25, 400)]
+        [Range(25, 200)]
         public int pitch = 100;
-        [Range(1, 100)]
-        public int gain = 50;
     }
     [Serializable]
     public struct TTSWitRequestSettings
     {
         public WitConfiguration configuration;
+        public TTSWitAudioType audioType;
+        public bool audioStream;
+        [Tooltip("Amount of clip length in seconds that must be received before stream is considered ready.")]
+        public float audioStreamReadyDuration;
+        [Tooltip("Total samples to be used to generate clip. A new clip will be generated every time this chunk size is surpassed.")]
+        public float audioStreamChunkLength;
+        [Tooltip("Amount of placeholder stream clips to be generated on service generation.")]
+        public int audioStreamPreloadCount;
     }
 
-    public class TTSWit : TTSService, ITTSVoiceProvider, ITTSWebHandler
+    public class TTSWit : TTSService, ITTSVoiceProvider, ITTSWebHandler, IWitConfigurationProvider
     {
         #region TTSService
         // Voice provider
@@ -80,13 +88,125 @@ namespace Meta.WitAi.TTS.Integrations
             }
         }
         private ITTSDiskCacheHandler _diskCache;
+
+        // Configuration provider
+        public WitConfiguration Configuration => RequestSettings.configuration;
+
+        // Use wit tts vrequest type
+        protected override AudioType GetAudioType()
+        {
+            return WitTTSVRequest.GetAudioType(RequestSettings.audioType);
+        }
+        // Preload stream cache
+        protected override void Awake()
+        {
+            base.Awake();
+            PreloadStreamCache();
+        }
+        // Add delegates
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+            AudioStreamHandler.OnClipUpdated += OnStreamClipUpdated;
+            AudioStreamHandler.OnStreamComplete += OnStreamClipComplete;
+        }
+        // Remove delegates
+        protected override void OnDisable()
+        {
+            base.OnDisable();
+            AudioStreamHandler.OnClipUpdated -= OnStreamClipUpdated;
+            AudioStreamHandler.OnStreamComplete -= OnStreamClipComplete;
+        }
+        // Destroy stream cache
+        protected override void OnDestroy()
+        {
+            base.OnDestroy();
+            UnloadStreamCache();
+        }
+
+        // Clip stream updated
+        private void OnStreamClipUpdated(AudioClip oldClip, AudioClip newClip)
+        {
+            TTSClipData[] clips = GetAllRuntimeCachedClips();
+            if (clips == null)
+            {
+                return;
+            }
+            foreach (var clipData in clips)
+            {
+                if (oldClip == clipData.clip)
+                {
+                    clipData.clip = newClip;
+                    WebStreamEvents?.OnStreamClipUpdate?.Invoke(clipData);
+                }
+            }
+        }
+        // Clip stream complete
+        private void OnStreamClipComplete(AudioClip clip)
+        {
+            TTSClipData[] clips = GetAllRuntimeCachedClips();
+            if (clips == null)
+            {
+                return;
+            }
+            foreach (var clipData in clips)
+            {
+                if (clip == clipData.clip)
+                {
+                    WebStreamEvents?.OnStreamComplete?.Invoke(clipData);
+                }
+            }
+        }
         #endregion
+
+        #region AudioStream Cache
+        // Simple check for cache
+        private bool _wasCached = false;
+        // Preload the stream cache
+        private void PreloadStreamCache()
+        {
+            // Ignore
+            if (!RequestSettings.audioStream || RequestSettings.audioStreamPreloadCount <= 0 || _wasCached)
+            {
+                return;
+            }
+
+            // Total samples to preload
+            int totalSamples = Mathf.CeilToInt(RequestSettings.audioStreamChunkLength *
+                                               WitConstants.ENDPOINT_TTS_CHANNELS *
+                                               WitConstants.ENDPOINT_TTS_SAMPLE_RATE);
+
+            // Preload specified amount of clips
+            _wasCached = true;
+            AudioStreamHandler.PreloadCachedClips(RequestSettings.audioStreamPreloadCount, totalSamples, WitConstants.ENDPOINT_TTS_CHANNELS, WitConstants.ENDPOINT_TTS_SAMPLE_RATE);
+        }
+        // Preload the stream cache
+        private void UnloadStreamCache()
+        {
+            // Ignore if was not cached
+            if (!_wasCached)
+            {
+                return;
+            }
+
+            // Destroy all cached clips
+            AudioStreamHandler.DestroyCachedClips();
+            _wasCached = false;
+        }
+        #endregion AudioStream Cache
 
         #region ITTSWebHandler Streams
         // Request settings
         [Header("Web Request Settings")]
         [FormerlySerializedAs("_settings")]
-        public TTSWitRequestSettings RequestSettings;
+        public TTSWitRequestSettings RequestSettings = new TTSWitRequestSettings
+        {
+            audioType = TTSWitAudioType.PCM,
+            audioStream = true,
+            audioStreamReadyDuration = 0.1f, // .1 seconds received before starting playback
+            audioStreamChunkLength = 5f, // 5 seconds per clip generation
+            audioStreamPreloadCount = 3 // 3 clips preloaded to be streamed at once
+        };
 
         // Use settings web stream events
         public TTSStreamEvents WebStreamEvents { get; set; } = new TTSStreamEvents();
@@ -138,26 +258,44 @@ namespace Meta.WitAi.TTS.Integrations
                 CancelWebStream(clipData);
             }
 
+            // Whether to stream
+            bool stream = Application.isPlaying && RequestSettings.audioStream;
+
             // Request tts
             WitTTSVRequest request = new WitTTSVRequest(RequestSettings.configuration);
-            request.RequestStream(clipData.textToSpeak, clipData.queryParameters,
+            request.RequestStream(clipData.textToSpeak, RequestSettings.audioType, stream, RequestSettings.audioStreamReadyDuration, RequestSettings.audioStreamChunkLength, clipData.queryParameters,
                 (clip, error) =>
                 {
+                    // Apply
                     _webStreams.Remove(clipData.clipID);
                     clipData.clip = clip;
-                    if (string.IsNullOrEmpty(error))
+                    // Unloaded
+                    if (clipData.loadState == TTSClipLoadState.Unloaded)
                     {
-                        WebStreamEvents?.OnStreamReady?.Invoke(clipData);
+                        error = WitConstants.CANCEL_ERROR;
+                        clip.DestroySafely();
+                        clip = null;
                     }
-                    else
+                    // Error
+                    if (!string.IsNullOrEmpty(error))
                     {
-                        if (string.Equals(error, VRequest.CANCEL_ERROR, StringComparison.CurrentCultureIgnoreCase))
+                        if (string.Equals(error, WitConstants.CANCEL_ERROR, StringComparison.CurrentCultureIgnoreCase))
                         {
                             WebStreamEvents?.OnStreamCancel?.Invoke(clipData);
                         }
                         else
                         {
                             WebStreamEvents?.OnStreamError?.Invoke(clipData, error);
+                        }
+                    }
+                    // Success
+                    else
+                    {
+                        clipData.clip.name = clipData.clipID;
+                        WebStreamEvents?.OnStreamReady?.Invoke(clipData);
+                        if (!stream)
+                        {
+                            WebStreamEvents?.OnStreamComplete?.Invoke(clipData);
                         }
                     }
                 },
@@ -224,7 +362,7 @@ namespace Meta.WitAi.TTS.Integrations
 
             // Request tts
             WitTTSVRequest request = new WitTTSVRequest(RequestSettings.configuration);
-            request.RequestDownload(downloadPath, clipData.textToSpeak, clipData.queryParameters,
+            request.RequestDownload(downloadPath, clipData.textToSpeak, RequestSettings.audioType, clipData.queryParameters,
                 (success, error) =>
                 {
                     _webDownloads.Remove(clipData.clipID);
@@ -282,15 +420,15 @@ namespace Meta.WitAi.TTS.Integrations
         {
             get
             {
-                if (_presetVoiceSettings == null || _presetVoiceSettings.Length == 0)
+                if (_presetVoiceSettings == null)
                 {
-                    _presetVoiceSettings = new TTSWitVoiceSettings[] { new TTSWitVoiceSettings() };
+                    _presetVoiceSettings = new TTSWitVoiceSettings[] { };
                 }
                 return _presetVoiceSettings;
             }
         }
         // Default voice setting uses the first voice in the list
-        public TTSVoiceSettings VoiceDefaultSettings => PresetVoiceSettings[0];
+        public TTSVoiceSettings VoiceDefaultSettings => PresetVoiceSettings == null || PresetVoiceSettings.Length == 0 ? null : PresetVoiceSettings[0];
 
         #if UNITY_EDITOR
         // Apply settings
@@ -301,7 +439,6 @@ namespace Meta.WitAi.TTS.Integrations
         #endif
 
         // Convert voice settings into dictionary to be used with web requests
-        private const string SETTINGS_KEY = "settingsID";
         private const string VOICE_KEY = "voice";
         private const string STYLE_KEY = "style";
         public Dictionary<string, string> EncodeVoiceSettings(TTSVoiceSettings voiceSettings)
@@ -309,13 +446,12 @@ namespace Meta.WitAi.TTS.Integrations
             Dictionary<string, string> parameters = new Dictionary<string, string>();
             if (voiceSettings != null)
             {
-                foreach (FieldInfo field in voiceSettings.GetType().GetFields())
+                foreach (FieldInfo field in GetVoiceSettingsFields(voiceSettings))
                 {
-                    if (!string.Equals(field.Name, SETTINGS_KEY, StringComparison.CurrentCultureIgnoreCase))
+                    // Ensure field value exists
+                    object fieldVal = field.GetValue(voiceSettings);
+                    if (fieldVal != null)
                     {
-                        // Get field value
-                        object fieldVal = field.GetValue(voiceSettings);
-
                         // Clamp in between range
                         RangeAttribute range = field.GetCustomAttribute<RangeAttribute>();
                         if (range != null && field.FieldType == typeof(int))
@@ -345,6 +481,28 @@ namespace Meta.WitAi.TTS.Integrations
                 }
             }
             return parameters;
+        }
+        // Obtain all fields for a specific voice settings
+        private static readonly Dictionary<Type, FieldInfo[]> _settingsFields = new Dictionary<Type, FieldInfo[]>();
+        private static FieldInfo[] GetVoiceSettingsFields(TTSVoiceSettings voiceSettings)
+        {
+            // Return fields if already found
+            Type settingsType = voiceSettings.GetType();
+            if (_settingsFields.ContainsKey(settingsType))
+            {
+                return _settingsFields[settingsType];
+            }
+
+            // Get public/instance fields
+            FieldInfo[] fields = settingsType.GetFields(BindingFlags.Public | BindingFlags.Instance);
+
+            // Remove fields from TTSVoiceSettings
+            Type baseType = typeof(TTSVoiceSettings);
+            fields = fields.ToList().FindAll((field) => field.DeclaringType != baseType).ToArray();
+
+            // Apply & return
+            _settingsFields[settingsType] = fields;
+            return fields;
         }
         // Returns an error if request is not valid
         private string IsRequestValid(TTSClipData clipData, WitConfiguration configuration)

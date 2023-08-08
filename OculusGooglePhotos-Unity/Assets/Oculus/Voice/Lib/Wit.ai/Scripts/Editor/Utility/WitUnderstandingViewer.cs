@@ -13,6 +13,7 @@ using Meta.WitAi.CallbackHandlers;
 using Meta.WitAi.Configuration;
 using Meta.WitAi.Data;
 using Meta.WitAi.Json;
+using Meta.WitAi.Requests;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -38,10 +39,9 @@ namespace Meta.WitAi.Windows
         private TimeSpan _requestLength;
         private string _status;
         private int _responseCode;
-        private WitRequest _request;
+        private VoiceServiceRequest _request;
         private int _savePopup;
         private GUIStyle _hamburgerButton;
-
 
         class Content
         {
@@ -103,14 +103,9 @@ namespace Meta.WitAi.Windows
             _submitStart = System.DateTime.Now;
         }
 
-        private void OnError(string title, string message)
+        private void OnSend(VoiceServiceRequest request)
         {
-            _status = message;
-        }
-
-        private void OnRequestCreated(WitRequest request)
-        {
-            this._request = request;
+            _request = request;
             ResetStartTime();
         }
 
@@ -342,9 +337,10 @@ namespace Meta.WitAi.Windows
                 _status = WitTexts.Texts.UnderstandingViewerLoadingLabel;
                 _responseText = _status;
                 _submitStart = System.DateTime.Now;
-                _request = witConfiguration.CreateMessageRequest(_utterance, new WitRequestOptions());
-                _request.onResponse += (r) => OnResponse(r?.ResponseData);
-                _request.Request();
+                _request = witConfiguration.CreateMessageRequest(new WitRequestOptions(), new VoiceServiceRequestEvents());
+                _request.Events.OnSend.AddListener(OnSend);
+                _request.Events.OnComplete.AddListener(OnComplete);
+                _request.Send(_utterance);
             }
         }
 
@@ -357,20 +353,20 @@ namespace Meta.WitAi.Windows
             }
         }
 
-        private void OnResponse(WitResponseNode ResponseData)
+        private void OnComplete(VoiceServiceRequest request)
         {
-            _responseCode = _request.StatusCode;
-            if (null != ResponseData)
+            _responseCode = request.StatusCode;
+            if (null != request.ResponseData)
             {
-                ShowResponse(ResponseData, false);
+                ShowResponse(request.ResponseData, false);
             }
-            else if (!string.IsNullOrEmpty(_request.StatusDescription))
+            else if (!string.IsNullOrEmpty(request.Results.Message))
             {
-                _responseText = _request.StatusDescription;
+                _responseText = request.Results.Message;
             }
             else
             {
-                _responseText = "No response. Status: " + _request.StatusCode;
+                _responseText = "No response. Status: " + request.StatusCode;
             }
         }
 
@@ -647,37 +643,35 @@ namespace Meta.WitAi.Windows
             // Add listeners to current service
             AddVoiceListeners(service);
         }
-        // Remove listeners
-        private void RemoveVoiceListeners(VoiceService v)
-        {
-            // Ignore
-            if (v == null)
-            {
-                return;
-            }
-            // Remove delegates
-            v.events.OnRequestCreated.RemoveListener(OnRequestCreated);
-            v.events.OnError.RemoveListener(OnError);
-            v.events.OnResponse.RemoveListener(OnResponse);
-            v.events.OnFullTranscription.RemoveListener(ShowTranscription);
-            v.events.OnPartialTranscription.RemoveListener(ShowTranscription);
-            v.events.OnStoppedListening.RemoveListener(ResetStartTime);
-        }
         // Add listeners
-        private void AddVoiceListeners(VoiceService v)
+        private void AddVoiceListeners(VoiceService voiceService)
         {
             // Ignore
-            if (v == null)
+            if (voiceService == null)
             {
                 return;
             }
             // Add delegates
-            v.events.OnRequestCreated.AddListener(OnRequestCreated);
-            v.events.OnError.AddListener(OnError);
-            v.events.OnResponse.AddListener(OnResponse);
-            v.events.OnPartialTranscription.AddListener(ShowTranscription);
-            v.events.OnFullTranscription.AddListener(ShowTranscription);
-            v.events.OnStoppedListening.AddListener(ResetStartTime);
+            voiceService.VoiceEvents.OnSend.AddListener(OnSend);
+            voiceService.VoiceEvents.OnComplete.AddListener(OnComplete);
+            voiceService.VoiceEvents.OnPartialTranscription.AddListener(ShowTranscription);
+            voiceService.VoiceEvents.OnFullTranscription.AddListener(ShowTranscription);
+            voiceService.VoiceEvents.OnStoppedListening.AddListener(ResetStartTime);
+        }
+        // Remove listeners
+        private void RemoveVoiceListeners(VoiceService voiceService)
+        {
+            // Ignore
+            if (voiceService == null)
+            {
+                return;
+            }
+            // Remove delegates
+            voiceService.VoiceEvents.OnSend.RemoveListener(OnSend);
+            voiceService.VoiceEvents.OnComplete.RemoveListener(OnComplete);
+            voiceService.VoiceEvents.OnFullTranscription.RemoveListener(ShowTranscription);
+            voiceService.VoiceEvents.OnPartialTranscription.RemoveListener(ShowTranscription);
+            voiceService.VoiceEvents.OnStoppedListening.RemoveListener(ResetStartTime);
         }
         #endregion
     }

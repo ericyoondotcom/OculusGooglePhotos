@@ -8,9 +8,12 @@
 
 using UnityEditor;
 using System.Reflection;
+using Meta.WitAi.Data.Configuration;
+using Meta.WitAi.Data.Info;
 
 namespace Meta.WitAi.Windows
 {
+    [CustomPropertyDrawer(typeof(WitEntityInfo))]
     public class WitEntityPropertyDrawer : WitPropertyDrawer
     {
         // Use name value for title if possible
@@ -48,6 +51,37 @@ namespace Meta.WitAi.Windows
                     return false;
             }
             return base.ShouldLayoutField(property, subfield);
+        }
+
+        protected override void OnDrawLabelInline(SerializedProperty property)
+        {
+            var configuration = property.serializedObject.targetObject as WitConfiguration;
+            if (configuration == null || !configuration.useConduit)
+            {
+                return;
+            }
+
+            var assemblyWalker = WitConfigurationEditor.AssemblyWalker;
+            if (assemblyWalker == null)
+            {
+                return;
+            }
+
+            var entityName = property.displayName;
+
+            if (WitEditorUI.LayoutIconButton(EditorGUIUtility.IconContent("UxmlScript Icon")))
+            {
+                var manifest = ManifestLoader.LoadManifest(configuration.ManifestLocalPath);
+                var sourceCodeFile = CodeMapper.GetSourceFilePathFromTypeName(entityName, manifest, assemblyWalker);
+
+                if (string.IsNullOrEmpty(sourceCodeFile))
+                {
+                    VLog.W($"Failed to local source code for {entityName}");
+                    return;
+                }
+
+                UnityEditorInternal.InternalEditorUtility.OpenFileAtLineExternal(sourceCodeFile, 1);
+            }
         }
     }
 }

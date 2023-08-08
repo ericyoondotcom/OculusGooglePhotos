@@ -18,8 +18,10 @@
  * limitations under the License.
  */
 
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using UnityEditor;
 using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.Requests;
@@ -28,20 +30,23 @@ using UnityEngine.SceneManagement;
 
 internal static class OVRProjectSetupUtils
 {
-    private static string _rootPath = null;
+    private static string _rootPath;
+
     public static string RootPath
     {
         get
         {
             if (_rootPath == null)
             {
-                var g = AssetDatabase.FindAssets ( $"t:Script {nameof(OVRProjectSetupUtils)}" );
-                _rootPath = AssetDatabase.GUIDToAssetPath ( g [ 0 ] );
+                var g = AssetDatabase.FindAssets($"t:Script {nameof(OVRProjectSetupUtils)}");
+                _rootPath = AssetDatabase.GUIDToAssetPath(g[0]);
                 _rootPath = Path.GetDirectoryName(_rootPath);
             }
+
             return _rootPath;
         }
     }
+
     private const string IconsRelativePath = "Icons/";
 
     public static string BuildIconPath(string path)
@@ -56,6 +61,50 @@ internal static class OVRProjectSetupUtils
         return rootGameObjects.FirstOrDefault(go => go.GetComponentInChildren<T>())?.GetComponentInChildren<T>();
     }
 
+    public static List<T> FindComponentsInScene<T>() where T : Component
+    {
+        var activeScene = SceneManager.GetActiveScene();
+        var foundComponents = new List<T>();
+
+        var rootObjects = activeScene.GetRootGameObjects();
+        foreach (var rootObject in rootObjects)
+        {
+            var components = rootObject.GetComponentsInChildren<T>(true);
+            foundComponents.AddRange(components);
+        }
+
+        return foundComponents;
+    }
+
+    public static bool HasComponentInParents<T>(GameObject obj) where T : Component
+    {
+        var currentTransform = obj.transform;
+
+        while (currentTransform != null)
+        {
+            if (currentTransform.GetComponent<T>() != null)
+            {
+                return true;
+            }
+            currentTransform = currentTransform.parent;
+        }
+
+        return false;
+    }
+
+    public static T FindScriptableObjectInProject<T>() where T : ScriptableObject
+    {
+        var guids = AssetDatabase.FindAssets("t:" + typeof(T).Name);
+
+        if (guids.Length == 0)
+        {
+            return null;
+        }
+
+        var path = AssetDatabase.GUIDToAssetPath(guids[0]);
+        return AssetDatabase.LoadAssetAtPath<T>(path);
+    }
+
     public static GUIContent CreateIcon(string name, string tooltip = null, bool builtIn = false)
     {
         GUIContent content = null;
@@ -66,8 +115,8 @@ internal static class OVRProjectSetupUtils
         else
         {
             var path = BuildIconPath(name);
-            var texture =AssetDatabase.LoadAssetAtPath<Texture2D>(path);
-            content = new GUIContent()
+            var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+            content = new GUIContent
             {
                 image = texture,
                 tooltip = tooltip
@@ -85,18 +134,19 @@ internal static class OVRProjectSetupUtils
     }
 
     public static bool PackageManagerListAvailable => _packageManagerListRequest.Status == StatusCode.Success;
+
     public static bool IsPackageInstalled(string packageName) =>
         PackageManagerListAvailable &&
         (_packageManagerListRequest.Result?.Any(package => package.name == packageName) ?? false);
 
     public static bool RefreshPackageList(bool blocking)
     {
-        _packageManagerListRequest = Client.List(offlineMode:false, includeIndirectDependencies:true);
+        _packageManagerListRequest = Client.List(offlineMode: false, includeIndirectDependencies: true);
         if (blocking)
         {
             while (!PackageManagerListAvailable)
             {
-                System.Threading.Thread.Sleep(100);
+                Thread.Sleep(100);
             }
         }
 
@@ -110,7 +160,7 @@ internal static class OVRProjectSetupUtils
         // TODO: make this async later
         while (!request.IsCompleted)
         {
-            System.Threading.Thread.Sleep(100);
+            Thread.Sleep(100);
         }
 
         // Refresh the Client list
@@ -126,7 +176,7 @@ internal static class OVRProjectSetupUtils
         // TODO: make this async later
         while (!request.IsCompleted)
         {
-            System.Threading.Thread.Sleep(1);
+            Thread.Sleep(1);
         }
 
         // Refresh the Client list
@@ -137,14 +187,14 @@ internal static class OVRProjectSetupUtils
 
     public static BuildTarget GetBuildTarget(this BuildTargetGroup buildTargetGroup)
     {
-	    // It is a bit tricky to get the build target from the build target group
-	    // because of some additional variations on build targets that the build target group doesn't know about
-	    // This function aims at offering an approximation of the build target, but it's not guaranteed
-	    return buildTargetGroup switch
-	    {
-		    BuildTargetGroup.Android => BuildTarget.Android,
-		    BuildTargetGroup.Standalone => BuildTarget.StandaloneWindows64,
-		    _ => BuildTarget.NoTarget
-	    };
+        // It is a bit tricky to get the build target from the build target group
+        // because of some additional variations on build targets that the build target group doesn't know about
+        // This function aims at offering an approximation of the build target, but it's not guaranteed
+        return buildTargetGroup switch
+        {
+            BuildTargetGroup.Android => BuildTarget.Android,
+            BuildTargetGroup.Standalone => BuildTarget.StandaloneWindows64,
+            _ => BuildTarget.NoTarget
+        };
     }
 }

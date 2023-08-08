@@ -27,41 +27,25 @@ internal class OVRConfigurationTask
 {
     internal static readonly string ConsoleLinkHref = "OpenOculusProjectSettings";
 
-    public enum TaskLevel
-    {
-        Optional = 0,
-        Recommended = 1,
-        Required = 2
-    }
-
-    public enum TaskGroup
-    {
-        All = 0,
-        Compatibility = 1,
-        Rendering = 2,
-        Quality = 3,
-        Physics = 4,
-        Packages = 5,
-        Features = 6
-    }
-
     public Hash128 Uid { get; }
-    public TaskGroup Group { get; }
+    public OVRProjectSetup.TaskGroup Group { get; }
     public BuildTargetGroup Platform { get; }
 
     public OptionalLambdaType<BuildTargetGroup, bool> Valid { get; }
-    public OptionalLambdaType<BuildTargetGroup, TaskLevel> Level { get; }
+    public OptionalLambdaType<BuildTargetGroup, OVRProjectSetup.TaskLevel> Level { get; }
     public OptionalLambdaType<BuildTargetGroup, string> Message { get; }
     public OptionalLambdaType<BuildTargetGroup, string> FixMessage { get; }
     public OptionalLambdaType<BuildTargetGroup, string> URL { get; }
     public OVRConfigurationTaskSourceCode SourceCode { get; set; }
 
     private Func<BuildTargetGroup, bool> _isDone;
+
     public Func<BuildTargetGroup, bool> IsDone
     {
         get => GetDoneState;
         private set => _isDone = value;
     }
+
     public Action<BuildTargetGroup> FixAction { get; }
 
     private readonly Dictionary<BuildTargetGroup, OVRProjectSetupSettingBool> _ignoreSettings =
@@ -70,33 +54,33 @@ internal class OVRConfigurationTask
     private readonly Dictionary<BuildTargetGroup, bool> _isDoneCache = new Dictionary<BuildTargetGroup, bool>();
 
     public OVRConfigurationTask(
-        TaskGroup group,
+        OVRProjectSetup.TaskGroup group,
         BuildTargetGroup platform,
         Func<BuildTargetGroup, bool> isDone,
         Action<BuildTargetGroup> fix,
-        OptionalLambdaType<BuildTargetGroup, TaskLevel> level,
+        OptionalLambdaType<BuildTargetGroup, OVRProjectSetup.TaskLevel> level,
         OptionalLambdaType<BuildTargetGroup, string> message,
         OptionalLambdaType<BuildTargetGroup, string> fixMessage,
         OptionalLambdaType<BuildTargetGroup, string> url,
         OptionalLambdaType<BuildTargetGroup, bool> valid)
     {
-	    Platform = platform;
-	    Group = group;
-	    IsDone = isDone;
+        Platform = platform;
+        Group = group;
+        IsDone = isDone;
         FixAction = fix;
-	    Level = level;
-	    Message = message;
+        Level = level;
+        Message = message;
 
-	    // If parameters are null, we're creating a OptionalLambdaType that points to default values
-	    // We don't want a null OptionalLambdaType, but we may be okay with an OptionalLambdaType containing a null value
-	    // For the URL for instance
-	    // Mandatory parameters will be checked on the Validate method down below
-	    URL = url ?? new OptionalLambdaTypeWithoutLambda<BuildTargetGroup, string>(null);
+        // If parameters are null, we're creating a OptionalLambdaType that points to default values
+        // We don't want a null OptionalLambdaType, but we may be okay with an OptionalLambdaType containing a null value
+        // For the URL for instance
+        // Mandatory parameters will be checked on the Validate method down below
+        URL = url ?? new OptionalLambdaTypeWithoutLambda<BuildTargetGroup, string>(null);
         FixMessage = fixMessage ?? new OptionalLambdaTypeWithoutLambda<BuildTargetGroup, string>(null);
-	    Valid = valid ?? new OptionalLambdaTypeWithoutLambda<BuildTargetGroup, bool>(true);
+        Valid = valid ?? new OptionalLambdaTypeWithoutLambda<BuildTargetGroup, bool>(true);
 
-	    // We may want to throw in case of some invalid parameters
-	    Validate();
+        // We may want to throw in case of some invalid parameters
+        Validate();
 
         var hash = new Hash128();
         hash.Append(Message.Default);
@@ -107,36 +91,36 @@ internal class OVRConfigurationTask
 
     private void Validate()
     {
-	    if (Group == TaskGroup.All)
-	    {
-		    throw new ArgumentException(
-			    $"[{nameof(OVRConfigurationTask)}] {nameof(TaskGroup.All)} is not meant to be used as a {nameof(TaskGroup)} type");
-	    }
+        if (Group == OVRProjectSetup.TaskGroup.All)
+        {
+            throw new ArgumentException(
+                $"[{nameof(OVRConfigurationTask)}] {nameof(OVRProjectSetup.TaskGroup.All)} is not meant to be used as a {nameof(OVRProjectSetup.TaskGroup)} type");
+        }
 
-	    if (_isDone == null)
-	    {
-		    throw new ArgumentNullException(nameof(_isDone));
-	    }
-
-
-	    if (Level == null)
-	    {
-		    throw new ArgumentNullException(nameof(Level));
-	    }
+        if (_isDone == null)
+        {
+            throw new ArgumentNullException(nameof(_isDone));
+        }
 
 
-	    if (Message == null || !Message.Valid || string.IsNullOrEmpty(Message.Default))
-	    {
-		    throw new ArgumentNullException(nameof(Message));
-	    }
+        if (Level == null)
+        {
+            throw new ArgumentNullException(nameof(Level));
+        }
+
+
+        if (Message == null || !Message.Valid || string.IsNullOrEmpty(Message.Default))
+        {
+            throw new ArgumentNullException(nameof(Message));
+        }
     }
 
     public void InvalidateCache(BuildTargetGroup buildTargetGroup)
     {
-	    Level.InvalidateCache(buildTargetGroup);
-	    Message.InvalidateCache(buildTargetGroup);
-	    URL.InvalidateCache(buildTargetGroup);
-	    Valid.InvalidateCache(buildTargetGroup);
+        Level.InvalidateCache(buildTargetGroup);
+        Message.InvalidateCache(buildTargetGroup);
+        URL.InvalidateCache(buildTargetGroup);
+        Valid.InvalidateCache(buildTargetGroup);
     }
 
     public bool IsIgnored(BuildTargetGroup buildTargetGroup)
@@ -151,36 +135,49 @@ internal class OVRConfigurationTask
 
     public bool Fix(BuildTargetGroup buildTargetGroup)
     {
-	    try
-	    {
-		    FixAction(buildTargetGroup);
-	    }
-	    catch (OVRConfigurationTaskException exception)
-	    {
-		    Debug.LogWarning(
-			    $"[Oculus Settings] Failed to fix task \"{Message.GetValue(buildTargetGroup)}\" : {exception}");
-	    }
+        try
+        {
+            FixAction(buildTargetGroup);
+        }
+        catch (OVRConfigurationTaskException exception)
+        {
+            Debug.LogWarning(
+                $"[Oculus Settings] Failed to fix task \"{Message.GetValue(buildTargetGroup)}\" : {exception}");
+        }
 
-	    var hasChanged = UpdateAndGetStateChanged(buildTargetGroup);
-	    if (hasChanged)
-	    {
-		    var fixMessage = FixMessage.GetValue(buildTargetGroup);
-		    Debug.Log(
-			    fixMessage != null
-				    ? $"[Oculus Settings] Fixed task \"{Message.GetValue(buildTargetGroup)}\" : {fixMessage}"
-				    : $"[Oculus Settings] Fixed task \"{Message.GetValue(buildTargetGroup)}\"");
-	    }
+        var hasChanged = UpdateAndGetStateChanged(buildTargetGroup);
+        if (hasChanged)
+        {
+            var fixMessage = FixMessage.GetValue(buildTargetGroup);
+            Debug.Log(
+                fixMessage != null
+                    ? $"[Oculus Settings] Fixed task \"{Message.GetValue(buildTargetGroup)}\" : {fixMessage}"
+                    : $"[Oculus Settings] Fixed task \"{Message.GetValue(buildTargetGroup)}\"");
+        }
 
-	    var isDone = IsDone(buildTargetGroup);
-	    return isDone;
+        var isDone = IsDone(buildTargetGroup);
+
+        OVRTelemetry.Start(OVRProjectSetupTelemetryEvent.EventTypes.Fix)
+            .AddAnnotation(OVRProjectSetupTelemetryEvent.AnnotationTypes.Uid, Uid.ToString())
+            .AddAnnotation(OVRProjectSetupTelemetryEvent.AnnotationTypes.Level,
+                Level.GetValue(buildTargetGroup).ToString())
+            .AddAnnotation(OVRProjectSetupTelemetryEvent.AnnotationTypes.Group, Group.ToString())
+            .AddAnnotation(OVRProjectSetupTelemetryEvent.AnnotationTypes.BuildTargetGroup, buildTargetGroup.ToString())
+            .AddAnnotation(OVRProjectSetupTelemetryEvent.AnnotationTypes.Value, isDone ? "true" : "false")
+            .Send();
+
+        return isDone;
     }
+
+    public string ComputeIgnoreUid(BuildTargetGroup buildTargetGroup)
+        => $"{OVRProjectSetup.KeyPrefix}.{GetType().Name}.{Uid}.Ignored.{buildTargetGroup.ToString()}";
 
     private OVRProjectSetupSettingBool GetIgnoreSetting(BuildTargetGroup buildTargetGroup)
     {
         if (!_ignoreSettings.TryGetValue(buildTargetGroup, out var item))
         {
-            var key = $"{OVRProjectSetup.KeyPrefix}.{GetType().Name}.{Uid}.Ignored.{buildTargetGroup.ToString()}";
-            item = new OVRProjectSetupProjectSettingBool(key, "", false);
+            var uid = ComputeIgnoreUid(buildTargetGroup);
+            item = new OVRProjectSetupProjectSettingBool(uid, false);
             _ignoreSettings.Add(buildTargetGroup, item);
         }
 
@@ -207,12 +204,12 @@ internal class OVRConfigurationTask
 
         switch (Level.GetValue(buildTargetGroup))
         {
-            case TaskLevel.Optional:
+            case OVRProjectSetup.TaskLevel.Optional:
                 break;
-            case TaskLevel.Recommended:
+            case OVRProjectSetup.TaskLevel.Recommended:
                 Debug.LogWarning(logMessage);
                 break;
-            case TaskLevel.Required:
+            case OVRProjectSetup.TaskLevel.Required:
                 if (OVRProjectSetup.RequiredThrowErrors.Value)
                 {
                     Debug.LogError(logMessage);
@@ -221,6 +218,7 @@ internal class OVRConfigurationTask
                 {
                     Debug.LogWarning(logMessage);
                 }
+
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
@@ -229,7 +227,8 @@ internal class OVRConfigurationTask
 
     internal string GetFullLogMessage(BuildTargetGroup buildTargetGroup)
     {
-        return $"{GetLogMessage(buildTargetGroup)}.\nYou can fix this by going to <a href=\"{ConsoleLinkHref}\">Edit > Project Settings > {OVRProjectSetupSettingsProvider.SettingsName}</a>";
+        return $"{GetLogMessage(buildTargetGroup)}.\nYou can fix this by going to " +
+               $"<a href=\"{ConsoleLinkHref}\">Edit > Project Settings > {OVRProjectSetupSettingsProvider.SettingsName}</a>";
     }
 
     internal string GetLogMessage(BuildTargetGroup buildTargetGroup)

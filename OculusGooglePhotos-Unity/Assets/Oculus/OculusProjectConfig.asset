@@ -24,6 +24,7 @@ MonoBehaviour:
   bodyTrackingSupport: 0
   faceTrackingSupport: 0
   eyeTrackingSupport: 0
+  virtualKeyboardSupport: 0
   disableBackups: 1
   enableNSCConfig: 1
   securityXmlPath: 
@@ -34,3 +35,4 @@ MonoBehaviour:
   insightPassthroughEnabled: 0
   _insightPassthroughSupport: 0
   systemSplashScreen: {fileID: 0}
+  systemSplashScreenType: 0

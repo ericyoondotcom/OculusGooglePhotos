@@ -29,7 +29,7 @@ namespace Oculus.Interaction
     {
         [Tooltip("Represents the pokeable surface area of this interactable.")]
         [SerializeField, Interface(typeof(ISurfacePatch))]
-        private MonoBehaviour _surfacePatch;
+        private UnityEngine.Object _surfacePatch;
         public ISurfacePatch SurfacePatch { get; private set; }
 
         [SerializeField]
@@ -121,6 +121,12 @@ namespace Oculus.Interaction
             [Tooltip("The distance over which a poke interactor drag motion will be remapped " +
                      "measured along the tangent plane to the surface (in meters)")]
             public float MaxPinDistance;
+            [Tooltip("The poke interactor position will be remapped along this curve from the " +
+                "initial touch point to the current position on surface.")]
+            public AnimationCurve PinningEaseCurve;
+            [Tooltip("In cases where a resync is necessary between the pinned position and the " +
+                "unpinned position, this time-based curve will be used.")]
+            public ProgressCurve ResyncCurve;
         }
 
         [SerializeField]
@@ -130,7 +136,9 @@ namespace Oculus.Interaction
             new PositionPinningConfig()
             {
                 Enabled = false,
-                MaxPinDistance = 0f
+                MaxPinDistance = 0.075f,
+                PinningEaseCurve = AnimationCurve.EaseInOut(0.2f, 0, 1, 1),
+                ResyncCurve = new ProgressCurve(AnimationCurve.EaseInOut(0, 0, 1, 1), 0.2f)
             };
 
         [Serializable]
@@ -138,6 +146,23 @@ namespace Oculus.Interaction
         {
             [Tooltip("If true, recoil assist will be applied.")]
             public bool Enabled;
+
+            [Tooltip("If true, DynamicDecayCurve will be used to decay the max distance based on the normal velocity.")]
+            public bool UseDynamicDecay;
+            [Tooltip("A function of the normal movement ratio to determine the rate of decay.")]
+            public AnimationCurve DynamicDecayCurve;
+
+            [Tooltip("Expand recoil window when fast Z motion is detected.")]
+            public bool UseVelocityExpansion;
+            [Tooltip("When average velocity in interactable Z is greater than min speed, the recoil window will begin expanding.")]
+            public float VelocityExpansionMinSpeed;
+            [Tooltip("Full recoil window expansion reached at this speed.")]
+            public float VelocityExpansionMaxSpeed;
+            [Tooltip("Window will expand by this distance when average Z velocity reaches max speed.")]
+            public float VelocityExpansionDistance;
+            [Tooltip("Window will contract toward ExitDistance at this rate (in meters) per second when velocity lowers.")]
+            public float VelocityExpansionDecayRate;
+
             [Tooltip("The distance over which a poke interactor must surpass to trigger " +
                      "an early unselect, measured along the normal to the surface (in meters)")]
             public float ExitDistance;
@@ -148,15 +173,28 @@ namespace Oculus.Interaction
 
         [SerializeField]
         [Tooltip("If enabled, recoil assist will affect unselection and reselection criteria. " +
-                 "Useful for triggering unselect in response to a smaller motion in the negative "+
+                 "Useful for triggering unselect in response to a smaller motion in the negative " +
                  "direction from a surface.")]
         private RecoilAssistConfig _recoilAssist =
             new RecoilAssistConfig()
             {
                 Enabled = false,
+                UseDynamicDecay = false,
+                DynamicDecayCurve = new AnimationCurve(
+                    new Keyframe(0f, 50f), new Keyframe(0.9f, 0.5f, -47, -47)),
+                UseVelocityExpansion = false,
+                VelocityExpansionMinSpeed = 0.4f,
+                VelocityExpansionMaxSpeed = 1.4f,
+                VelocityExpansionDistance = 0.055f,
+                VelocityExpansionDecayRate = 0.125f,
                 ExitDistance = 0.02f,
                 ReEnterDistance = 0.02f
             };
+
+        [SerializeField, Optional]
+        [Tooltip("(Meters, World) The threshold below which distances near this surface " +
+                 "are treated as equal in depth for the purposes of ranking.")]
+        private float _closeDistanceThreshold = 0.001f;
 
         [SerializeField, Optional]
         private int _tiebreakerScore = 0;
@@ -238,6 +276,18 @@ namespace Oculus.Interaction
             set
             {
                 _cancelSelectTangent = value;
+            }
+        }
+
+        public float CloseDistanceThreshold
+        {
+            get
+            {
+                return _closeDistanceThreshold;
+            }
+            set
+            {
+                _closeDistanceThreshold = value;
             }
         }
 
@@ -338,7 +388,6 @@ namespace Oculus.Interaction
                     Mathf.Min(_minThresholds.MinNormal,
                     _enterHoverNormal);
             }
-
             this.EndStart(ref _started);
         }
 
@@ -361,7 +410,7 @@ namespace Oculus.Interaction
 
         public void InjectSurfacePatch(ISurfacePatch surfacePatch)
         {
-            _surfacePatch = surfacePatch as MonoBehaviour;
+            _surfacePatch = surfacePatch as UnityEngine.Object;
             SurfacePatch = surfacePatch;
         }
 

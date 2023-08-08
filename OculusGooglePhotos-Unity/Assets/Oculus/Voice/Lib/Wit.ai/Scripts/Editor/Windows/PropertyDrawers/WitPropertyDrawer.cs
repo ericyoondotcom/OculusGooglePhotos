@@ -7,7 +7,10 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Reflection;
+using Lib.Conduit.Editor;
+using Meta.Conduit;
 using UnityEngine;
 using UnityEditor;
 
@@ -30,6 +33,31 @@ namespace Meta.WitAi.Windows
         protected virtual bool FoldoutEnabled => true;
         // Determine edit type for this drawer
         protected virtual WitPropertyEditType EditType => WitPropertyEditType.NoEdit;
+        // The manifest loader
+        internal static readonly ManifestLoader ManifestLoader = new ManifestLoader();
+        // Used to map type names to their source code
+        internal static readonly SourceCodeMapper CodeMapper = new SourceCodeMapper();
+
+        // Field children to be laid out
+        private static Dictionary<Type, FieldInfo[]> _subfieldLookup = new Dictionary<Type, FieldInfo[]>();
+        // Get subfields
+        private static FieldInfo[] GetSubfields(Type forType)
+        {
+            // Ignore null
+            if (forType == null)
+            {
+                return null;
+            }
+            // Return if already loaded
+            if (_subfieldLookup.ContainsKey(forType))
+            {
+                return _subfieldLookup[forType];
+            }
+            // Obtain all instance methods
+            FieldInfo[] subfields = forType.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            _subfieldLookup[forType] = subfields;
+            return subfields;
+        }
 
         // Remove padding
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
@@ -52,7 +80,10 @@ namespace Meta.WitAi.Windows
             string titleText = GetLocalizedText(property, LocalizedTitleKey);
             if (FoldoutEnabled)
             {
+                GUILayout.BeginHorizontal();
                 property.isExpanded = WitEditorUI.LayoutFoldout(new GUIContent(titleText), property.isExpanded);
+                OnDrawLabelInline(property);
+                GUILayout.EndHorizontal();
                 if (!property.isExpanded)
                 {
                     return;
@@ -71,21 +102,25 @@ namespace Meta.WitAi.Windows
             // Pre fields
             OnGUIPreFields(position, property, label);
 
-            // Iterate all subfields
-            WitPropertyEditType editType = EditType;
-            const BindingFlags flags = BindingFlags.Public | BindingFlags.Instance;
+            // Get subfields
             Type fieldType = fieldInfo.FieldType;
             if (fieldType.IsArray)
             {
                 fieldType = fieldType.GetElementType();
             }
-            FieldInfo[] subfields = fieldType.GetFields(flags);
-            for (int s = 0; s < subfields.Length; s++)
+            FieldInfo[] subfields = GetSubfields(fieldType);
+
+            // Layout all subfields
+            if (subfields != null)
             {
-                FieldInfo subfield = subfields[s];
-                if (ShouldLayoutField(property, subfield))
+                WitPropertyEditType editType = EditType;
+                for (int s = 0; s < subfields.Length; s++)
                 {
-                    LayoutField(s, property, subfield, editType);
+                    FieldInfo subfield = subfields[s];
+                    if (ShouldLayoutField(property, subfield))
+                    {
+                        LayoutField(s, property, subfield, editType);
+                    }
                 }
             }
 
@@ -96,6 +131,13 @@ namespace Meta.WitAi.Windows
             EditorGUI.indentLevel--;
             GUILayout.EndVertical();
         }
+
+        // Called per line
+        protected virtual void OnDrawLabelInline(SerializedProperty property)
+        {
+
+        }
+
         // Override pre fields
         protected virtual void OnGUIPreFields(Rect position, SerializedProperty property, GUIContent label)
         {
@@ -225,11 +267,22 @@ namespace Meta.WitAi.Windows
         // Way to ignore certain properties
         protected virtual bool ShouldLayoutField(SerializedProperty property, FieldInfo subfield)
         {
-            switch (subfield.Name)
+            // Not static
+            if (subfield.IsStatic)
             {
-                case "witConfiguration":
-                    return false;
+                return false;
             }
+            // Not serialized
+            if (!subfield.IsPublic && !Attribute.IsDefined(subfield, typeof(SerializeField)))
+            {
+                return false;
+            }
+            // Hidden
+            if (Attribute.IsDefined(subfield, typeof(HideInInspector)))
+            {
+                return false;
+            }
+            // Success
             return true;
         }
         // Get field default value if applicable

@@ -18,21 +18,47 @@
  * limitations under the License.
  */
 
+using System.Globalization;
 using UnityEditor;
+using UnityEngine.UIElements;
 
 internal class OVRProjectSetupSettingsProvider : SettingsProvider
 {
+    public enum Origins
+    {
+        Settings,
+        Menu,
+        Icon,
+        Console
+    }
+
+    public enum Interaction
+    {
+        None,
+        WentToDocumentation,
+        WentToSource,
+        Fixed,
+        Ignored
+    }
+
     [MenuItem("Oculus/Tools/Project Setup Tool", false, 1)]
     static void OpenProjectSetupTool()
     {
-        OpenSettingsWindow();
+        OpenSettingsWindow(Origins.Menu);
     }
 
     public const string SettingsName = "Oculus";
-    private static readonly string SettingsPath = $"Project/{SettingsName}";
+    public static readonly string SettingsPath = $"Project/{SettingsName}";
 
     private OVRProjectSetupDrawer _ovrProjectSetupDrawer;
     private OVRProjectSetupDrawer OvrProjectSetupDrawer => _ovrProjectSetupDrawer ??= new OVRProjectSetupDrawer();
+    private static Origins? _lastOrigin = null;
+    private static Interaction _lastInteraction = Interaction.None;
+    private static bool _activated = false;
+
+    public static double OpenTimestamp { get; set; }
+    public static double TimeSpent => EditorApplication.timeSinceStartup - OpenTimestamp;
+    public static OVRTelemetryMarker? InteractionFlowEvent { get; set; }
 
     [SettingsProvider]
     public static SettingsProvider CreateProjectValidationSettingsProvider()
@@ -40,9 +66,76 @@ internal class OVRProjectSetupSettingsProvider : SettingsProvider
         return new OVRProjectSetupSettingsProvider(SettingsPath, SettingsScope.Project);
     }
 
+    internal static void SetNewInteraction(Interaction interaction)
+    {
+        if (interaction > _lastInteraction)
+        {
+            InteractionFlowEvent = InteractionFlowEvent?.AddPoint(OVRProjectSetupTelemetryEvent.MarkerPoints.Interact);
+            _lastInteraction = interaction;
+        }
+    }
+
+    internal static void ResetInteraction()
+    {
+        InteractionFlowEvent = null;
+        _lastInteraction = Interaction.None;
+        _lastOrigin = null;
+        _activated = false;
+        OpenTimestamp = 0.0;
+    }
+
     private OVRProjectSetupSettingsProvider(string path,
         SettingsScope scopes)
-        : base(path, scopes) {}
+        : base(path, scopes)
+    {
+    }
+
+    public override void OnActivate(string searchContext, VisualElement rootElement)
+    {
+        if (!_activated)
+        {
+            OpenTimestamp = EditorApplication.timeSinceStartup;
+            _activated = true;
+            _lastOrigin = _lastOrigin ?? Origins.Settings;
+
+            OVRTelemetry.Start(OVRProjectSetupTelemetryEvent.EventTypes.Open)
+                .AddAnnotation(OVRProjectSetupTelemetryEvent.AnnotationTypes.BuildTargetGroup,
+                    EditorUserBuildSettings.selectedBuildTargetGroup.ToString())
+                .AddAnnotation(OVRProjectSetupTelemetryEvent.AnnotationTypes.Origin, _lastOrigin.ToString())
+                .Send();
+
+            InteractionFlowEvent = InteractionFlowEvent?.AddPoint(OVRProjectSetupTelemetryEvent.MarkerPoints.Open)
+                .AddAnnotation(OVRProjectSetupTelemetryEvent.AnnotationTypes.Origin, _lastOrigin.ToString());
+        }
+    }
+
+    public override void OnDeactivate()
+    {
+        if (TimeSpent < 0.1)
+        {
+            // Ignore the entire interaction as it was too short to be meaningful
+            return;
+        }
+
+        if (_activated)
+        {
+            OVRTelemetry.Start(OVRProjectSetupTelemetryEvent.EventTypes.Close)
+                .AddAnnotation(OVRProjectSetupTelemetryEvent.AnnotationTypes.BuildTargetGroup,
+                    EditorUserBuildSettings.selectedBuildTargetGroup.ToString())
+                .AddAnnotation(OVRProjectSetupTelemetryEvent.AnnotationTypes.Origin, _lastOrigin.ToString())
+                .AddAnnotation(OVRProjectSetupTelemetryEvent.AnnotationTypes.TimeSpent,
+                    TimeSpent.ToString(CultureInfo.InvariantCulture))
+                .AddAnnotation(OVRProjectSetupTelemetryEvent.AnnotationTypes.Interaction, _lastInteraction.ToString())
+                .Send();
+
+            InteractionFlowEvent = InteractionFlowEvent?.AddPoint(OVRProjectSetupTelemetryEvent.MarkerPoints.Close)
+                .AddAnnotation(OVRProjectSetupTelemetryEvent.AnnotationTypes.Interaction, _lastInteraction.ToString())
+                .Send();
+
+            ResetInteraction();
+        }
+    }
+
 
     public override void OnTitleBarGUI()
     {
@@ -56,9 +149,10 @@ internal class OVRProjectSetupSettingsProvider : SettingsProvider
         OvrProjectSetupDrawer.OnGUI();
     }
 
-    public static void OpenSettingsWindow(BuildTargetGroup? selectedTargetGroup = null)
+    public static void OpenSettingsWindow(Origins origin)
     {
-        var buildTargetGroup = selectedTargetGroup ?? BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget);
+        _lastOrigin = origin;
+        var buildTargetGroup = BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget);
         EditorUserBuildSettings.selectedBuildTargetGroup = buildTargetGroup;
         SettingsService.OpenProjectSettings(SettingsPath);
     }

@@ -29,8 +29,8 @@ internal static class OVRProjectSetupPhysicsTasks
     {
         // [Recommended] Default Contact Offset >= 0.01f
         OVRProjectSetup.AddTask(
-            level: OVRConfigurationTask.TaskLevel.Recommended,
-            group: OVRConfigurationTask.TaskGroup.Physics,
+            level: OVRProjectSetup.TaskLevel.Recommended,
+            group: OVRProjectSetup.TaskGroup.Physics,
             isDone: group => Physics.defaultContactOffset >= 0.01f,
             message: $"Use Default Context Offset above or equal to 0.01",
             fix: group => Physics.defaultContactOffset = 0.01f,
@@ -39,22 +39,22 @@ internal static class OVRProjectSetupPhysicsTasks
 
         // [Recommended] Sleep Threshold >= 0.005f
         OVRProjectSetup.AddTask(
-	        level: OVRConfigurationTask.TaskLevel.Recommended,
-	        group: OVRConfigurationTask.TaskGroup.Physics,
-	        isDone: group => Physics.sleepThreshold >= 0.005f,
-	        message: $"Use Sleep Threshold above or equal to 0.005",
-	        fix: group => Physics.sleepThreshold = 0.005f,
-	        fixMessage: "Physics.sleepThreshold = 0.005f"
+            level: OVRProjectSetup.TaskLevel.Recommended,
+            group: OVRProjectSetup.TaskGroup.Physics,
+            isDone: group => Physics.sleepThreshold >= 0.005f,
+            message: $"Use Sleep Threshold above or equal to 0.005",
+            fix: group => Physics.sleepThreshold = 0.005f,
+            fixMessage: "Physics.sleepThreshold = 0.005f"
         );
 
         // [Recommended] Default Solver Iterations <= 8
         OVRProjectSetup.AddTask(
-	        level: OVRConfigurationTask.TaskLevel.Recommended,
-	        group: OVRConfigurationTask.TaskGroup.Physics,
-	        isDone: group => Physics.defaultSolverIterations <= 8,
-	        message: $"Use Default Solver Iteration below or equal to 8",
-	        fix: group => Physics.defaultSolverIterations = 8,
-	        fixMessage: "Physics.defaultSolverIterations = 8"
+            level: OVRProjectSetup.TaskLevel.Recommended,
+            group: OVRProjectSetup.TaskGroup.Physics,
+            isDone: group => Physics.defaultSolverIterations <= 8,
+            message: $"Use Default Solver Iteration below or equal to 8",
+            fix: group => Physics.defaultSolverIterations = 8,
+            fixMessage: "Physics.defaultSolverIterations = 8"
         );
     }
 }
