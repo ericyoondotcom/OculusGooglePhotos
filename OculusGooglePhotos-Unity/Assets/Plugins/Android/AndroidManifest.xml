@@ -1,0 +1,21 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" 
+package="<packagename>"
+android:versionCode="1" android:versionName="1.0" 
+android:installLocation="auto">
+<application>
+<meta-data android:name="com.oculus.intent.category.VR" 
+android:value="vr_only"/>
+<meta-data android:name="com.oculus.supportedDevices" 
+android:value="quest|quest2|cambria"/>
+<activity android:screenOrientation="landscape"
+     android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
+     
+android:configChanges="density|keyboard|keyboardHidden|navigation|orientation|screenLayout|screenSize|uiMode"
+     android:launchMode="singleTask"
+     android:resizeableActivity="false">
+</activity>
+</application>
+<uses-sdk android:minSdkVersion="23"/>
+<uses-feature android:glEsVersion="0x00030001" />
+</manifest>
+

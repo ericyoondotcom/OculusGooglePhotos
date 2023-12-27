@@ -5,7 +5,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
 using System.Threading.Tasks;
-using Oculus.Interaction.PoseDetection;
 
 public class PhotosUI : MonoBehaviour
 {

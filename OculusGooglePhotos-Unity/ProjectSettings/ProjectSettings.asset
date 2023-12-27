@@ -135,9 +135,11 @@ PlayerSettings:
   loadStoreDebugModeEnabled: 0
   bundleVersion: 1.0.1
   preloadedAssets:
-  - {fileID: 11400000, guid: 23e569d9a0fc14dffb19ed93bacefa52, type: 2}
-  - {fileID: 11400000, guid: b0ffc63a3a3ad47dca00bf6b34365481, type: 2}
-  - {fileID: 3515886794278886070, guid: 55d65c28e063a42fe9a4c0ba11fa0ac1, type: 2}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 4893652818818437439, guid: b264ae9d3149048968819a1670fc6989, type: 2}
+  - {fileID: 3908167681972177686, guid: 876c05cb764cb4df6b3f3138fd5457d0, type: 2}
   metroInputSource: 0
   wsaTransparentSwapchain: 0
   m_HolographicPauseOnTrackingLoss: 1
@@ -838,7 +840,10 @@ PlayerSettings:
   webGLMemoryGeometricGrowthStep: 0.2
   webGLMemoryGeometricGrowthCap: 96
   webGLPowerPreference: 2
-  scriptingDefineSymbols: {}
+  scriptingDefineSymbols:
+    Android: USE_INPUT_SYSTEM_POSE_CONTROL;USE_INPUT_SYSTEM_POSE_CONTROL;USE_INPUT_SYSTEM_POSE_CONTROL
+    Standalone: USE_INPUT_SYSTEM_POSE_CONTROL;USE_INPUT_SYSTEM_POSE_CONTROL;USE_INPUT_SYSTEM_POSE_CONTROL
+    Windows Store Apps: USE_INPUT_SYSTEM_POSE_CONTROL;USE_INPUT_SYSTEM_POSE_CONTROL;USE_INPUT_SYSTEM_POSE_CONTROL
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend:

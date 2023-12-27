@@ -166,15 +166,15 @@ public class PlayerUIController : MonoBehaviour
             DisplayPhotosFromAlbum(albumToDisplayOnNextFrame);
             albumToDisplayOnNextFrame = null;
         }
-        if (OVRInput.GetDown(OVRInput.Button.Start) || Input.GetKeyDown(KeyCode.Escape))
-        {
-            if(content.activeSelf && isDisplayingPhotos && photosUI.photoDisplayer.CurrentMediaItem != null)
-            {
-                content.SetActive(false);
-            } else
-            {
-                content.SetActive(true);
-            }
-        }
+        // if (OVRInput.GetDown(OVRInput.Button.Start) || Input.GetKeyDown(KeyCode.Escape))
+        // {
+        //     if(content.activeSelf && isDisplayingPhotos && photosUI.photoDisplayer.CurrentMediaItem != null)
+        //     {
+        //         content.SetActive(false);
+        //     } else
+        //     {
+        //         content.SetActive(true);
+        //     }
+        // }
     }
 }
