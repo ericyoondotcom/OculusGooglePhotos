@@ -2108,11 +2108,20 @@ PrefabInstance:
       propertyPath: m_Name
       value: Modified XR Rig
       objectReference: {fileID: 0}
+    - target: {fileID: 8158018415915180785, guid: 96fb92ffc68854ffbbf62751ebe40c3d, type: 3}
+      propertyPath: m_StartingInteractionOverridesMap.Array.size
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 96fb92ffc68854ffbbf62751ebe40c3d, type: 3}
+--- !u!20 &657555325 stripped
+Camera:
+  m_CorrespondingSourceObject: {fileID: 8944874343468962107, guid: 96fb92ffc68854ffbbf62751ebe40c3d, type: 3}
+  m_PrefabInstance: {fileID: 657555324}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &678778930
 GameObject:
   m_ObjectHideFlags: 0
@@ -2582,7 +2591,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Press <sprite="OculusUI" name="icon_bt-menu_24_Filled"> to hide menu
+  m_text: Press <sprite="bars-solid" name="bars-solid"> to hide menu
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: a6e6526747ce0457fa567fef263d5771, type: 2}
   m_sharedMaterial: {fileID: -6931104601522845500, guid: a6e6526747ce0457fa567fef263d5771, type: 2}
@@ -2609,7 +2618,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 16.85
+  m_fontSize: 20
   m_fontSizeBase: 24
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -3926,6 +3935,39 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9d0413ae308274884b2934ea27f9a470, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  hideUIbutton:
+    m_Name: Hide U Ibutton
+    m_Type: 0
+    m_ExpectedControlType: 
+    m_Id: f4a7dcce-d3f1-4baa-aff6-f79242c5973f
+    m_Processors: 
+    m_Interactions: 
+    m_SingletonActionBindings:
+    - m_Name: 
+      m_Id: d7ef474f-de15-458a-a524-843228cfb76a
+      m_Path: <Keyboard>/escape
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: Hide U Ibutton
+      m_Flags: 0
+    - m_Name: 
+      m_Id: ada591cb-386d-4516-b3a4-1babd00b886d
+      m_Path: <XRController>{LeftHand}/menu
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: Hide U Ibutton
+      m_Flags: 0
+    - m_Name: 
+      m_Id: 25eb82f5-f653-48ba-9f80-6b047a01848e
+      m_Path: <XRController>{RightHand}/menu
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: Hide U Ibutton
+      m_Flags: 0
+    m_Flags: 0
   content: {fileID: 3384720581324132381}
   photosDataManager: {fileID: 1684322951}
   loader: {fileID: 292157980}
@@ -4537,7 +4579,7 @@ Canvas:
   m_Enabled: 1
   serializedVersion: 3
   m_RenderMode: 2
-  m_Camera: {fileID: 0}
+  m_Camera: {fileID: 657555325}
   m_PlaneDistance: 100
   m_PixelPerfect: 0
   m_ReceivesEvents: 1
@@ -4562,6 +4604,7 @@ GameObject:
   - component: {fileID: 1749511572180632635}
   - component: {fileID: 5603074432664291350}
   - component: {fileID: 8340716659004470804}
+  - component: {fileID: 8340716659004470805}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -4939,6 +4982,25 @@ MonoBehaviour:
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 4294967295
+--- !u!114 &8340716659004470805
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3384720581324132381}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7951c64acb0fa62458bf30a60089fe2d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_IgnoreReversedGraphics: 0
+  m_CheckFor2DOcclusion: 0
+  m_CheckFor3DOcclusion: 0
+  m_BlockingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_RaycastTriggerInteraction: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

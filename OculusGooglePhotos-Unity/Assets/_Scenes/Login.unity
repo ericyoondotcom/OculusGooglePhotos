@@ -683,6 +683,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 96fb92ffc68854ffbbf62751ebe40c3d, type: 3}
+--- !u!20 &4375920424324573247 stripped
+Camera:
+  m_CorrespondingSourceObject: {fileID: 8944874343468962107, guid: 96fb92ffc68854ffbbf62751ebe40c3d, type: 3}
+  m_PrefabInstance: {fileID: 4375920424324573246}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &7889736638776795216
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -775,6 +780,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1749511570884111180, guid: 1efe8480147c14f3e9c25052361f2296, type: 3}
+      propertyPath: m_Camera
+      value: 
+      objectReference: {fileID: 4375920424324573247}
     - target: {fileID: 3384720582359646058, guid: 1efe8480147c14f3e9c25052361f2296, type: 3}
       propertyPath: m_Name
       value: Canvas

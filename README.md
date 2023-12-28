@@ -63,8 +63,10 @@ Learn more at [gallery.yoonicode.com](https://gallery.yoonicode.com) • Made by
 - Follow [this guide](https://developer.oculus.com/documentation/unity/unity-gs-overview/) to get your Meta Quest set up with Unity.
 - Copy `OculusGooglePhotos-Unity/Assets/Scripts/Constants.template` to `Constants.cs`
     - Paste in your Cloud Functions base URL (such as `https://us-central1-foobar.cloudfunctions.net`)
-- If you want to be able to test the UI without using your Quest, go into the "Player" scene, click on `UIHelpers > EventSystem` in the heirarchy, and enable `Input System UI Input Module`. You'll have to re-disable the component when you create a build or test on your Quest
 
+> **Known problem**: There seems to be a bug with Unity where a checkbox magically turns on every time a build is created. Go to `Project Settings` -> `OpenXR` -> `Meta Quest Support` (cog wheel) -> deselect `Force Remove Internet`.
+> 
+> Tip: use `apktool d my-build.apk && cat my-build/AndroidManifest.xml | grep "INTERNET"` to quickly check.
 ## Technical details
 
 ### Authentication flow
