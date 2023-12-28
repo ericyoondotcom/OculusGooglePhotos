@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using UnityEngine.SceneManagement;
-using OVRSimpleJSON;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;

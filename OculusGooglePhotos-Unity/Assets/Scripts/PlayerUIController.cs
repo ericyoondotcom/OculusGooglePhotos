@@ -2,11 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PlayerUIController : MonoBehaviour
 {
     public const string ALL_PHOTOS_TEXT = "All photos";
 
+    public InputAction hideUIbutton;
     public GameObject content;
     public PhotosDataManager photosDataManager;
     public GameObject loader;
@@ -23,6 +25,7 @@ public class PlayerUIController : MonoBehaviour
     
     void Start()
     {
+        hideUIbutton.performed += ctx => { OnHidePressed(); };
         albumUI.playerUIController = this;
         photosUI.playerUIController = this;
         albumUI.albumUI.SetActive(false);
@@ -166,15 +169,24 @@ public class PlayerUIController : MonoBehaviour
             DisplayPhotosFromAlbum(albumToDisplayOnNextFrame);
             albumToDisplayOnNextFrame = null;
         }
-        if (OVRInput.GetDown(OVRInput.Button.Start) || Input.GetKeyDown(KeyCode.Escape))
+    }
+
+    void OnHidePressed() {
+        if(content.activeSelf && isDisplayingPhotos && photosUI.photoDisplayer.CurrentMediaItem != null)
         {
-            if(content.activeSelf && isDisplayingPhotos && photosUI.photoDisplayer.CurrentMediaItem != null)
-            {
-                content.SetActive(false);
-            } else
-            {
-                content.SetActive(true);
-            }
+            content.SetActive(false);
+        } else
+        {
+            content.SetActive(true);
         }
+    }
+
+    void OnEnable()
+    {
+        hideUIbutton.Enable();
+    }
+    void OnDisable()
+    {
+        hideUIbutton.Disable();
     }
 }
