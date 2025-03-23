@@ -10,6 +10,9 @@
 	<script src="https://accounts.google.com/gsi/client" async defer></script>
 	<script src="config.js"></script>
 
+	<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+
+
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;700&display=swap" rel="stylesheet">
@@ -53,7 +56,22 @@
 			<p><i class="fa-solid fa-circle-notch"></i></p>
 		</div>
 		<div id="step-3">
-			<h2>Awesome sauce! You can now return to the VR app.</h2>
+			<h2>Pick photos to view in VR</h2>
+			<p>Scan this QR code to select your photos</p>
+			<div id="qrcode"></div>
+			<a href="javascript:void(0);" target="_blank" rel="noopener noreferrer" id="pick-link">
+				<button id="pick-button">
+					Or continue in new tab
+					<i class="fa-solid fa-arrow-right"></i>
+				</button>
+			</a>
+		</div>
+		<div id="step-4">
+			<p><i class="fa-solid fa-circle-notch"></i></p>
+		</div>
+		<div id="step-5">
+			<h2>Done!</h2>
+			<p>Return to your headset to view your photos.</p>
 		</div>
 		<p id="error"></p>
 	</div>

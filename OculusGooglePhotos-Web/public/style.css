@@ -146,13 +146,13 @@ h2 {
 	to { transform: rotate(360deg); }
 }
 
-#step-2 {
+#step-2, #step-4 {
 	display: flex;
 	justify-content: center;
 	align-items: center;
 	font-size: 50px;
 }
-#step-2 i {
+#step-2 i, #step-4 i {
 	animation-name: spinner;
 	animation-duration: 0.6s;
 	animation-iteration-count: infinite;
@@ -185,4 +185,26 @@ h2 {
 #footer a {
 	text-decoration: underline;
 	color: inherit;
+}
+
+#pick-button {
+	font-size: 15px;
+	font-family: "Lexend", sans-serif;
+	padding: 10px 15px;
+	background: none;
+	border: none;
+	background-color: var(--accent-color);
+	color: #FFFFFF;
+	border-radius: 50px;
+	height: 40px;
+	cursor: pointer;
+}
+
+#qrcode {
+	margin-bottom: 20px;
+}
+#qrcode img {
+	margin: 0 auto;
+	max-height: 150px;
+	max-width: 150px;
 }
