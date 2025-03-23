@@ -18,7 +18,7 @@ MonoBehaviour:
   DepthSubmission: 0
   DashSupport: 1
   LowOverheadMode: 0
-  OptimizeBufferDiscards: 1
+  OptimizeBufferDiscards: 0
   PhaseSync: 0
   SymmetricProjection: 1
   SubsampledLayout: 0
@@ -28,5 +28,9 @@ MonoBehaviour:
   EnableTrackingOriginStageMode: 0
   SpaceWarp: 0
   TargetQuest2: 1
-  TargetQuestPro: 0
+  TargetQuestPro: 1
+  TargetQuest3: 1
+  TargetQuest3S: 1
   SystemSplashScreen: {fileID: 0}
+  UseStickControlThumbsticks: 0
+  OptimizeMultiviewRenderRegions: 0
