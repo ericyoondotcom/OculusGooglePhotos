@@ -5,7 +5,6 @@ Google Photos viewer for Meta Quest.
 
 
 - View flat and 360° photos and videos from Google Photos
-- Scroll through individual albums or your entire library
 - Your photos data never leaves your device
 - 100% open source
 
@@ -29,10 +28,10 @@ Learn more at [gallery.yoonicode.com](https://gallery.yoonicode.com) • Made by
 
 ### Create your own test Google Cloud project
 1. Create a project in the Google Cloud Console
-2. Under the API Library, enable the Google Photos library
+2. Under the API Library, enable the Google Photos Picker library
 3. Configure your OAuth Consent Screen
     - Authorize the domain `yoonicode.com`
-    - Add the scope `https://www.googleapis.com/auth/photoslibrary.readonly`
+    - Add the scope `https://www.googleapis.com/auth/photospicker.mediaitems.readonly`
 4. Under the Credentials page, create a new credential
     - Type: OAuth Client ID
     - Application type: Web application
@@ -64,9 +63,11 @@ Learn more at [gallery.yoonicode.com](https://gallery.yoonicode.com) • Made by
 - Copy `OculusGooglePhotos-Unity/Assets/Scripts/Constants.template` to `Constants.cs`
     - Paste in your Cloud Functions base URL (such as `https://us-central1-foobar.cloudfunctions.net`)
 
-> **Known problem**: There seems to be a bug with Unity where a checkbox magically turns on every time a build is created. Go to `Project Settings` -> `OpenXR` -> `Meta Quest Support` (cog wheel) -> deselect `Force Remove Internet`.
-> 
-> Tip: use `apktool d my-build.apk && cat my-build/AndroidManifest.xml | grep "INTERNET"` to quickly check.
+> **Known problem**: There seems to be a bug with Unity where OpenXR settings are reset every time assets are imported.
+> - Add "Meta Quest Touch Controller Plus" and "Meta Quest Touch Controller Pro" to `Enabled interaction profiles`.
+> - Enable "Meta Quest Support" under Feature Groups
+> - Go to `Project Settings` -> `OpenXR` -> `Meta Quest Support` (cog wheel) -> deselect `Force Remove Internet`.
+>   - Tip: use `apktool d my-build.apk && cat my-build/AndroidManifest.xml | grep "INTERNET"` to quickly check.
 ## Technical details
 
 ### Authentication flow
@@ -75,7 +76,8 @@ Learn more at [gallery.yoonicode.com](https://gallery.yoonicode.com) • Made by
 2. Website redirects user to Google login page
 3. Once authorized, Google redirects user back to companion website with a query parameter of the auth code
 4. Companion website trades authorization code for refresh token
-5. Companion website calls a Firebase Function with the refresh token
-6. Firebase Function saves the refresh token in the database paired with the code the user entered
-7. Unity scene polls a Firebase Function every 5 seconds given its generated code, Firebase Function returns the refresh token
+5. Companion website prompts user to open a new tab, where they can select photos
+5. Companion website polls for the photos picker result
+6. Companion website calls a Firebase Cloud Function, saving the refresh token and picker session ID in the database, paired with the code the user entered
+7. Unity scene polls a Firebase Function every 5 seconds given its generated code, Firebase Function returns the refresh token and session ID
 8. Unity trades in the refresh token for an access token whenever it expires
