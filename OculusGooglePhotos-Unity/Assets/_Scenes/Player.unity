@@ -1799,12 +1799,18 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4778211696441940833, guid: f6336ac4ac8b4d34bc5072418cdc62a0, type: 3}
+      propertyPath: m_SmoothMotionEnabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8158018415915180785, guid: 96fb92ffc68854ffbbf62751ebe40c3d, type: 3}
       propertyPath: m_StartingInteractionOverridesMap.Array.size
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedComponents:
+    - {fileID: 6232745470614056090, guid: f6336ac4ac8b4d34bc5072418cdc62a0, type: 3}
+    m_RemovedGameObjects:
+    - {fileID: 5167925059111895691, guid: f6336ac4ac8b4d34bc5072418cdc62a0, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f6336ac4ac8b4d34bc5072418cdc62a0, type: 3}
@@ -3497,14 +3503,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 773386214296a41b4ab4ca3ecad9f8ed, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  entryGap: 20
-  albumUI: {fileID: 0}
-  scrollViewContent: {fileID: 0}
-  loadMoreButton: {fileID: 0}
-  albumEntryPrefab: {fileID: 4792237719375392532, guid: df1b0806ca42d4f6294caf30e7359ee1, type: 3}
-  entryHeight: 0
-  instantiatedAlbumKeys: []
-  instantiatedEntries: []
 --- !u!4 &1718189388
 Transform:
   m_ObjectHideFlags: 0
