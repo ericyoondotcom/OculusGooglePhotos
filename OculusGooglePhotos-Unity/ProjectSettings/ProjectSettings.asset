@@ -145,6 +145,8 @@ PlayerSettings:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
+  - {fileID: 4010862852311347121, guid: b4a0a624ced91bd49a9d5c98669daed5, type: 2}
+  - {fileID: -4351675550824803688, guid: dded99d26233d744dba8078804ef2b42, type: 2}
   metroInputSource: 0
   wsaTransparentSwapchain: 0
   m_HolographicPauseOnTrackingLoss: 1
@@ -267,7 +269,7 @@ PlayerSettings:
   AndroidTargetArchitectures: 2
   AndroidSplashScreenScale: 0
   androidSplashScreen: {fileID: 0}
-  AndroidKeystoreName: C:/Users/emjyo/Documents/Permanent/yoonicode-android-keystore.keystore
+  AndroidKeystoreName: /Users/yooniverse/Documents/Permanent/yoonicode-android-keystore.keystore
   AndroidKeyaliasName: upload
   AndroidEnableArmv9SecurityFeatures: 0
   AndroidEnableArm64MTE: 0
