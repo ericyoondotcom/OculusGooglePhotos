@@ -19,6 +19,8 @@ public class AuthenticationManager : MonoBehaviour
     [NonSerialized]
     public string accessToken;
     [NonSerialized]
+    public string sessionId;
+    [NonSerialized]
     public DateTime accessTokenExpiry;
     readonly HttpClient client = new HttpClient();
     string loadSceneOnNextUpdate;
@@ -52,22 +54,31 @@ public class AuthenticationManager : MonoBehaviour
     void LoadSavedRefreshToken()
     {
         refreshToken = PlayerPrefs.GetString("google_refresh_token");
-        if (refreshToken.Length == 0)
+        sessionId = PlayerPrefs.GetString("photos_session_id");
+        if (refreshToken.Length == 0 || sessionId.Length == 0)
         {
             OnAuthFail();
             return;
         }
-        Debug.Log("Loaded refresh token from disk: " + refreshToken);
+        Debug.Log("Loaded auth data from disk");
     }
 
     string GetFirebaseFunctionsBaseURL() => useFunctionsEmulators ? Constants.FIREBASE_FUNCTIONS_BASE_URL_EMULATOR : Constants.FIREBASE_FUNCTIONS_BASE_URL;
 
-    public async Task<bool> FetchRefreshToken(string linkCode)
+    public async Task<bool> FetchPickerSession(string linkCode)
     {
-        using (HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Post, GetFirebaseFunctionsBaseURL() + "pollForRefreshToken"))
+        using (HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Post, GetFirebaseFunctionsBaseURL() + "pollForPickerSession"))
         {
             req.Content = new StringContent(linkCode);
-            HttpResponseMessage res = await client.SendAsync(req);
+            HttpResponseMessage res = null;
+            try
+            {
+                res = await client.SendAsync(req);
+            }
+            catch(Exception e)
+            {
+                Debug.LogError(e);
+            }
 
             if (res.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
@@ -89,10 +100,14 @@ public class AuthenticationManager : MonoBehaviour
             }
 
             string respStr = await res.Content.ReadAsStringAsync();
-            refreshToken = respStr;
-            Debug.Log("Found refresh token from server: " + refreshToken);
+
+            JSONNode json = JSON.Parse(respStr);
+            refreshToken = json["refreshToken"];
+            sessionId = json["sessionId"];
+            Debug.Log("Found data on server. Refresh token: " + refreshToken + ", session ID: " + sessionId);
 
             PlayerPrefs.SetString("google_refresh_token", refreshToken);
+            PlayerPrefs.SetString("photos_session_id", sessionId);
             PlayerPrefs.Save();
 
             return true;
@@ -129,7 +144,6 @@ public class AuthenticationManager : MonoBehaviour
 
             string returnContent = await res.Content.ReadAsStringAsync();
             SimpleJSON.JSONNode ret = SimpleJSON.JSON.Parse(returnContent);
-
             accessToken = ret["access_token"];
             accessTokenExpiry = DateTime.Now.AddSeconds(ret["expires_in"].AsInt);
             Debug.Log("Refreshed access token. Expires on " + accessTokenExpiry.ToLongDateString() + " @ " + accessTokenExpiry.ToLongTimeString() + ", access token: " + accessToken);

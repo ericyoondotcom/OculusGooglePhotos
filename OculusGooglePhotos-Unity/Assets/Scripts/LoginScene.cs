@@ -31,7 +31,7 @@ public class LoginScene : MonoBehaviour
     {
         while (true)
         {
-            var task = AuthenticationManager.Instance.FetchRefreshToken(linkCode);
+            var task = AuthenticationManager.Instance.FetchPickerSession(linkCode);
             yield return new WaitUntil(() => task.IsCompleted);
             if (task.Result)
             {
