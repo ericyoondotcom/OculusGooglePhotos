@@ -59,7 +59,6 @@ public class PhotosUI : MonoBehaviour
     public void RefreshDisplay()
     {
         if (isShowingLibrary) DisplayLibrary(playerUIController.photosDataManager.data);
-        else if (displayedAlbumId != null) DisplayAlbum(playerUIController.photosDataManager.data, displayedAlbumId);
     }
 
     public void DisplayLibrary(PhotosDataStore data)
@@ -69,22 +68,9 @@ public class PhotosUI : MonoBehaviour
             DestroyAllEntries();
         }
         isShowingLibrary = true;
-        albumTitle.text = PlayerUIController.ALL_PHOTOS_TEXT;
+        albumTitle.text = "Photos";
         displayedAlbumId = null;
         StartCoroutine(DisplayPhotos(data.library.mediaItems, data.library.hasMoreMediaItemsToLoad));
-    }
-
-    public void DisplayAlbum(PhotosDataStore data, string albumKey)
-    {
-        Album album = data.albums[albumKey];
-        if(isShowingLibrary || displayedAlbumId != album.id)
-        {
-            DestroyAllEntries();
-        }
-        isShowingLibrary = false;
-        albumTitle.text = album.title;
-        displayedAlbumId = album.id;
-        StartCoroutine(DisplayPhotos(album.mediaItems, album.hasMoreMediaItemsToLoad));
     }
 
     IEnumerator DisplayPhotos(Dictionary<string, MediaItem> mediaItems, bool hasMoreMediaItemsToLoad)
@@ -189,14 +175,7 @@ public class PhotosUI : MonoBehaviour
 
     public void LoadMore()
     {
-        if (isShowingLibrary)
-        {
-            playerUIController.LoadLibraryMediaItems();
-        }
-        else
-        {
-            playerUIController.LoadAlbumMediaItems(displayedAlbumId);
-        }
+        playerUIController.LoadLibraryMediaItems();
     }
 
     void OnSelectPhoto(MediaItem mediaItem)
@@ -218,7 +197,7 @@ public class PhotosUI : MonoBehaviour
             selectedEntry = entry;
         }
 
-        if(selectedEntry == null)
+        if (selectedEntry == null)
         {
             photoDisplayer.StopDisplaying();
         }

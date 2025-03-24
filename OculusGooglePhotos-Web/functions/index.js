@@ -2,50 +2,34 @@ const config = require("./config");
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const fetch = require("node-fetch-commonjs");
+const { refreshToken } = require("firebase-admin/app");
 
 admin.initializeApp();
 const db = admin.database();
 
-exports.onAuthorizationCodeObtained = functions.https.onCall(async (data, context) => {
-    const {linkCode, authorizationCode} = data;
+exports.finishedPickingPhotos = functions.https.onCall(async (data, context) => {
+    const {linkCode, refreshToken, sessionId} = data;
     if((typeof linkCode) !== "string" || linkCode.length !== 9 || linkCode.includes("/")) {
         throw new functions.https.HttpsError("invalid-argument", "Malformed link code.");
     }
-    if((typeof authorizationCode) !== "string" || authorizationCode.length === 0) {
-        throw new functions.https.HttpsError("invalid-argument", "Malformed authorization code.");
+    if((typeof refreshToken) !== "string" || refreshToken.length === 0) {
+        throw new functions.https.HttpsError("invalid-argument", "Malformed refresh token.");
     }
-
-    let json;
-    try {
-        const res = await fetch("https://oauth2.googleapis.com/token", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded"
-            },
-            body: new URLSearchParams({
-                grant_type: "authorization_code",
-                code: authorizationCode,
-                redirect_uri: "postmessage", // for popup url. https://stackoverflow.com/a/72365385/4699945
-                client_id: config.OAUTH_CLIENT_ID,
-                client_secret: config.OAUTH_CLIENT_SECRET
-            })
-        });
-        json = await res.json();
-    } catch(e) {
-        console.error(e);
-        throw new functions.https.HttpsError("internal", "Error while fetching access token.");
+    if((typeof sessionId) !== "string" || sessionId.length === 0) {
+        throw new functions.https.HttpsError("invalid-argument", "Malformed session ID.");
     }
     
-    await db.ref("authResults/" + linkCode).set({
-        refreshToken: json.refresh_token,
+    await db.ref("pickerSessions/" + linkCode).set({
+        refreshToken,
+        sessionId,
         createdAt: admin.database.ServerValue.TIMESTAMP
     });
-    return {success: true};
+    return { success: true };
 });
 
-// req data: text/plain (link code string)
-// res data: text/plain (refresh token string)
-exports.pollForRefreshToken = functions.https.onRequest(async (req, res) => {
+// req data: plaintext string (link code string)
+// res data: json (refresh token, session id)
+exports.pollForPickerSession = functions.https.onRequest(async (req, res) => {
     const linkCode = req.body;
     if((typeof linkCode) !== "string" || linkCode.length !== 9 || linkCode.includes("/")) {
         return res.status(400).end("Malformed link code.");
@@ -53,7 +37,7 @@ exports.pollForRefreshToken = functions.https.onRequest(async (req, res) => {
 
     let snap;
     try {
-        snap = await db.ref("authResults/" + linkCode).get();
+        snap = await db.ref("pickerSessions/" + linkCode).get();
     } catch(e) {
         return res.status(500).end("Error while fetching auth result from database.");
     }
@@ -61,7 +45,7 @@ exports.pollForRefreshToken = functions.https.onRequest(async (req, res) => {
     if(!val) {
         return res.status(404).end("No auth result found");
     }
-    if(!val.refreshToken || !val.createdAt) {
+    if(!val.refreshToken || !val.sessionId || !val.createdAt) {
         return res.status(500).end("Malformed data saved in database");
     }
     // Delete codes older than 5 minutes
@@ -71,5 +55,5 @@ exports.pollForRefreshToken = functions.https.onRequest(async (req, res) => {
     }
 
     await snap.ref.remove(); // Delete the code once it's used
-    return res.status(200).end(snap.val().refreshToken);
+    return res.status(200).json(snap.val());
 });
